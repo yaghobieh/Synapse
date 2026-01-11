@@ -1,0 +1,14 @@
+{
+  "name": "synapse-devtools",
+  "version": "1.0.0",
+  "description": "Chrome DevTools extension for Synapse state management",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.268",
+    "typescript": "^5.0.0"
+  }
+}

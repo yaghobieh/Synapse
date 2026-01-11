@@ -1,0 +1,48 @@
+{
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "target": "ES6",
+    "lib": ["DOM", "ES6", "ES2017", "ESNext"],
+    "module": "ESNext",
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": false,
+    "baseUrl": "./",
+    "rootDir": "./",
+    "outDir": "./dist",
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": false,
+    "allowJs": true,
+    "noImplicitAny": true,
+    "declarationDir": "dist",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "resolveJsonModule": true,
+    "types": ["node"],
+    "paths": {
+      "@consts": ["./src/consts"],
+      "@consts/*": ["./src/consts/*"],
+      "@core": ["./src/core"],
+      "@core/*": ["./src/core/*"],
+      "@hooks": ["./src/hooks"],
+      "@hooks/*": ["./src/hooks/*"],
+      "@api": ["./src/api"],
+      "@api/*": ["./src/api/*"],
+      "@utils": ["./src/utils"],
+      "@utils/*": ["./src/utils/*"],
+      "@config": ["./src/config"],
+      "@config/*": ["./src/config/*"],
+      "@types": ["./src/types"],
+      "@types/*": ["./src/types/*"],
+      "@example": ["./src/example"],
+      "@example/*": ["./src/example/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "cli/**/*"]
+}
+

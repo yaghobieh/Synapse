@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Synapse DevTools Panel</title>
+  <link rel="stylesheet" href="panel.css">
+</head>
+
+<body>
+  <div id="synapse-devtools">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <svg class="logo" viewBox="0 0 128 128" width="24" height="24">
+          <circle cx="64" cy="64" r="60" fill="#0F0F23" />
+          <circle cx="64" cy="64" r="12" fill="#A855F7" />
+          <circle cx="64" cy="64" r="6" fill="#FFF" />
+          <circle cx="64" cy="28" r="8" fill="#A855F7" />
+          <circle cx="64" cy="100" r="8" fill="#A855F7" />
+          <circle cx="32" cy="46" r="7" fill="#A855F7" />
+          <circle cx="96" cy="46" r="7" fill="#A855F7" />
+          <circle cx="32" cy="82" r="7" fill="#A855F7" />
+          <circle cx="96" cy="82" r="7" fill="#A855F7" />
+        </svg>
+        <h1>Synapse</h1>
+      </div>
+      <div class="header-right">
+        <button id="clear-btn" class="btn btn-icon" title="Clear Actions">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+            <path
+              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+          </svg>
+        </button>
+        <button id="settings-btn" class="btn btn-icon" title="Settings">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+            <path
+              d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Tabs -->
+    <nav class="tabs">
+      <button class="tab active" data-tab="actions">Actions</button>
+      <button class="tab" data-tab="state">State</button>
+      <button class="tab" data-tab="diff">Diff</button>
+      <button class="tab" data-tab="api">API</button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main">
+      <!-- Actions Panel -->
+      <div id="actions-panel" class="panel active">
+        <div class="actions-list" id="actions-list">
+          <div class="empty-state">
+            <svg viewBox="0 0 128 128" width="48" height="48">
+              <circle cx="64" cy="64" r="60" fill="none" stroke="#3B3B5C" stroke-width="2" />
+              <circle cx="64" cy="64" r="12" fill="#3B3B5C" />
+            </svg>
+            <p>No actions recorded yet.</p>
+            <p class="hint">Actions will appear here when dispatched.</p>
+          </div>
+        </div>
+        <div class="action-detail" id="action-detail">
+          <div class="empty-state">
+            <p>Select an action to view details</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- State Panel -->
+      <div id="state-panel" class="panel">
+        <div class="state-tree" id="state-tree">
+          <div class="empty-state">
+            <p>No state available</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Diff Panel -->
+      <div id="diff-panel" class="panel">
+        <div class="diff-view" id="diff-view">
+          <div class="empty-state">
+            <p>Select an action to view state diff</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- API Panel -->
+      <div id="api-panel" class="panel">
+        <div class="api-form">
+          <h3>Execute API Action</h3>
+          <div class="form-group">
+            <label for="api-method">Method</label>
+            <select id="api-method">
+              <option value="GET">GET</option>
+              <option value="POST">POST</option>
+              <option value="PUT">PUT</option>
+              <option value="PATCH">PATCH</option>
+              <option value="DELETE">DELETE</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="api-url">URL</label>
+            <input type="text" id="api-url" placeholder="/api/endpoint">
+          </div>
+          <div class="form-group">
+            <label for="api-action-type">Action Type</label>
+            <input type="text" id="api-action-type" placeholder="FETCH_DATA">
+          </div>
+          <div class="form-group">
+            <label for="api-body">Body (JSON)</label>
+            <textarea id="api-body" rows="5" placeholder='{ "key": "value" }'></textarea>
+          </div>
+          <button id="api-execute" class="btn btn-primary">Execute</button>
+        </div>
+        <div class="api-history" id="api-history">
+          <h3>API History</h3>
+          <div class="empty-state">
+            <p>No API calls yet</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <span class="status" id="connection-status">
+        <span class="status-dot disconnected"></span>
+        Disconnected
+      </span>
+      <span class="version">v1.0.0</span>
+    </footer>
+  </div>
+
+  <script src="../dist/panel.js"></script>
+</body>
+
+</html>

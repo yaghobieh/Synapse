@@ -1,0 +1,33 @@
+{
+  "storePath": "./src/store",
+  "slicesPath": "./src/store/slices",
+  "actionType": {
+    "case": "UPPER_SNAKE",
+    "prefix": "",
+    "suffix": ""
+  },
+  "dispatch": {
+    "startAction": false,
+    "endAction": false,
+    "startSuffix": "_START",
+    "endSuffix": "_END"
+  },
+  "debug": {
+    "enabled": true,
+    "logger": true,
+    "devtools": true,
+    "logLevel": "info"
+  },
+  "api": {
+    "baseURL": "https://jsonplaceholder.typicode.com",
+    "timeout": 5000,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "retry": {
+      "enabled": true,
+      "maxAttempts": 3,
+      "delay": 1000
+    }
+  }
+}

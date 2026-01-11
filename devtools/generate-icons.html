@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Generate Icons</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #1a1a2e;
+      color: #fff;
+    }
+    canvas {
+      border: 2px solid #7C3AED;
+      margin: 10px;
+      background: #0f0f23;
+    }
+    button {
+      background: #7C3AED;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px;
+    }
+    button:hover {
+      background: #9333EA;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Synapse Icon Generator</h1>
+  <p>Click the buttons below to download the icons</p>
+  
+  <div class="container">
+    <div>
+      <h3>128x128</h3>
+      <canvas id="canvas128" width="128" height="128"></canvas>
+      <br>
+      <button onclick="downloadIcon(128)">Download 128x128</button>
+    </div>
+    <div>
+      <h3>48x48</h3>
+      <canvas id="canvas48" width="48" height="48"></canvas>
+      <br>
+      <button onclick="downloadIcon(48)">Download 48x48</button>
+    </div>
+    <div>
+      <h3>16x16</h3>
+      <canvas id="canvas16" width="16" height="16"></canvas>
+      <br>
+      <button onclick="downloadIcon(16)">Download 16x16</button>
+    </div>
+  </div>
+
+  <script>
+    function drawIcon(ctx, size) {
+      const center = size / 2;
+      const scale = size / 128;
+      
+      ctx.clearRect(0, 0, size, size);
+      
+      // Background glow
+      const glow = ctx.createRadialGradient(center, center, 0, center, center, 50 * scale);
+      glow.addColorStop(0, 'rgba(168, 85, 247, 0.3)');
+      glow.addColorStop(1, 'rgba(124, 58, 237, 0)');
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, 0, size, size);
+      
+      // Gradient
+      const gradient = ctx.createLinearGradient(0, 0, size, size);
+      gradient.addColorStop(0, '#7C3AED');
+      gradient.addColorStop(0.5, '#9333EA');
+      gradient.addColorStop(1, '#A855F7');
+      
+      // Central node
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(center, center, 12 * scale, 0, Math PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#A855F7';
+      ctx.beginPath();
+      ctx.arc(center, center, 8 * scale, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Inner ring nodes
+      const innerRing = [
+        [center, center - 24 * scale],
+        [center + 18 * scale, center - 12 * scale],
+        [center + 18 * scale, center + 12 * scale],
+        [center, center + 24 * scale],
+        [center - 18 * scale, center + 12 * scale],
+        [center - 18 * scale, center - 12 * scale]
+      ];
+      
+      // Outer ring nodes
+      const outerRing = [
+        [center, center - 44 * scale],
+        [center + 28 * scale, center - 28 * scale],
+        [center + 36 * scale, center],
+        [center + 28 * scale, center + 28 * scale],
+        [center, center + 44 * scale],
+        [center - 28 * scale, center + 28 * scale],
+        [center - 36 * scale, center],
+        [center - 28 * scale, center - 28 * scale]
+      ];
+      
+      // Draw connections
+      ctx.strokeStyle = gradient;
+      ctx.globalAlpha = 0.6;
+      ctx.lineWidth = 2.5 * scale;
+      
+      innerRing.forEach(([x, y]) => {
+        ctx.beginPath();
+        ctx.moveTo(center, center);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+      });
+      
+      ctx.strokeStyle = '#A855F7';
+      ctx.globalAlpha = 0.5;
+      ctx.lineWidth = 2 * scale;
+      
+      for (let i = 0; i < innerRing.length; i++) {
+        const [x1, y1] = innerRing[i];
+        const [x2, y2] = outerRing[i];
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      }
+      
+      ctx.globalAlpha = 1;
+      
+      // Draw inner ring nodes
+      ctx.fillStyle = gradient;
+      innerRing.forEach(([x, y]) => {
+        ctx.beginPath();
+        ctx.arc(x, y, 6 * scale, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      
+      // Draw outer ring nodes
+      ctx.fillStyle = '#A855F7';
+      outerRing.forEach(([x, y]) => {
+        ctx.beginPath();
+        ctx.arc(x, y, 5 * scale, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+    
+    function downloadIcon(size) {
+      const canvas = document.getElementById(`canvas${size}`);
+      const link = document.createElement('a');
+      link.download = `icon${size}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+    
+    // Draw all icons on load
+    drawIcon(document.getElementById('canvas128').getContext('2d'), 128);
+    drawIcon(document.getElementById('canvas48').getContext('2d'), 48);
+    drawIcon(document.getElementById('canvas16').getContext('2d'), 16);
+  </script>
+</body>
+</html>

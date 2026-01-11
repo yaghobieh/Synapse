@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+  <defs>
+    <linearGradient id="brainGradient16" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7C3AED;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#A855F7;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Central brain -->
+  <circle cx="8" cy="8" r="2.5" fill="none" stroke="url(#brainGradient16)" stroke-width="1"/>
+  <circle cx="8" cy="8" r="0.8" fill="#A855F7"/>
+  
+  <!-- 8 Tentacles (simplified) -->
+  <line x1="8" y1="5.5" x2="8" y2="2" stroke="#7C3AED" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="10" y1="6" x2="12.5" y2="3.5" stroke="#7C3AED" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="10.5" y1="8" x2="14" y2="8" stroke="#8B5CF6" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="10" y1="10" x2="12.5" y2="12.5" stroke="#9333EA" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="8" y1="10.5" x2="8" y2="14" stroke="#A855F7" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="6" y1="10" x2="3.5" y2="12.5" stroke="#9333EA" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="5.5" y1="8" x2="2" y2="8" stroke="#8B5CF6" stroke-width="0.8" stroke-linecap="round"/>
+  <line x1="6" y1="6" x2="3.5" y2="3.5" stroke="#7C3AED" stroke-width="0.8" stroke-linecap="round"/>
+</svg>

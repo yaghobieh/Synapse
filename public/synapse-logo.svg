@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="mainBrainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7C3AED;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#9333EA;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#A855F7;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Central state store (brain) -->
+  <circle cx="100" cy="75" r="35" fill="url(#mainBrainGradient)" opacity="0.15" filter="url(#glow)"/>
+  <circle cx="100" cy="75" r="28" fill="none" stroke="url(#mainBrainGradient)" stroke-width="3.5"/>
+  
+  <!-- Neural network in center -->
+  <circle cx="100" cy="75" r="6" fill="#A855F7"/>
+  <circle cx="90" cy="68" r="3.5" fill="#9333EA"/>
+  <circle cx="110" cy="68" r="3.5" fill="#9333EA"/>
+  <circle cx="90" cy="82" r="3.5" fill="#8B5CF6"/>
+  <circle cx="110" cy="82" r="3.5" fill="#8B5CF6"/>
+  <circle cx="85" cy="75" r="2.5" fill="#7C3AED"/>
+  <circle cx="115" cy="75" r="2.5" fill="#7C3AED"/>
+  
+  <!-- Connection lines -->
+  <line x1="90" y1="68" x2="100" y2="75" stroke="#A855F7" stroke-width="2" opacity="0.5"/>
+  <line x1="110" y1="68" x2="100" y2="75" stroke="#A855F7" stroke-width="2" opacity="0.5"/>
+  <line x1="90" y1="82" x2="100" y2="75" stroke="#A855F7" stroke-width="2" opacity="0.5"/>
+  <line x1="110" y1="82" x2="100" y2="75" stroke="#A855F7" stroke-width="2" opacity="0.5"/>
+  <line x1="85" y1="75" x2="100" y2="75" stroke="#A855F7" stroke-width="2" opacity="0.5"/>
+  <line x1="115" y1="75" x2="100" y2="75" stroke="#A855F7" stroke-width="2" opacity="0.5"/>
+  
+  <!-- 8 Tentacles with data flow nodes -->
+  <!-- Top -->
+  <path d="M 100 47 Q 100 30 100 15" stroke="url(#mainBrainGradient)" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+  <circle cx="100" cy="30" r="3.5" fill="#A855F7"/>
+  <circle cx="100" cy="15" r="5" fill="#A855F7"/>
+  
+  <!-- Top-right -->
+  <path d="M 120 55 Q 140 40 155 25" stroke="url(#mainBrainGradient)" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+  <circle cx="140" cy="40" r="3.5" fill="#A855F7"/>
+  <circle cx="155" cy="25" r="5" fill="#A855F7"/>
+  
+  <!-- Right -->
+  <path d="M 128 75 Q 150 75 175 75" stroke="url(#mainBrainGradient)" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+  <circle cx="150" cy="75" r="3.5" fill="#A855F7"/>
+  <circle cx="175" cy="75" r="5" fill="#A855F7"/>
+  
+  <!-- Bottom-right -->
+  <path d="M 120 95 Q 140 110 155 125" stroke="url(#mainBrainGradient)" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+  <circle cx="140" cy="110" r="3.5" fill="#A855F7"/>
+  <circle cx="155" cy="125" r="5" fill="#A855F7"/>
+  
+  <!-- Bottom -->
+  <path d="M 100 103 Q 100 135 100 165" stroke="url(#mainBrainGradient)" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+  <circle cx="100" cy="135" r="3.5" fill="#A855F7"/>
+  <circle cx="100" cy="165" r="5" fill="#A855F7"/>
+  
+  <!-- Bottom-left -->
+  <path d="M 80 95 Q 60 110 45 125" stroke="url(#mainBrainGradient)" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+  <circle cx="60" cy="110" r="3.5" fill="#A855F7"/>
+  <circle cx="45" cy="125" r="5" fill="#A855F7"/>
+  
+  <!-- Left -->
+  <path d="M 72 75 Q 50 75 25 75" stroke="url(#mainBrainGradient)" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+  <circle cx="50" cy="75" r="3.5" fill="#A855F7"/>
+  <circle cx="25" cy="75" r="5" fill="#A855F7"/>
+  
+  <!-- Top-left -->
+  <path d="M 80 55 Q 60 40 45 25" stroke="url(#mainBrainGradient)" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+  <circle cx="60" cy="40" r="3.5" fill="#A855F7"/>
+  <circle cx="45" cy="25" r="5" fill="#A855F7"/>
+  
+  <!-- Data flow indicators (small dots along tentacles) -->
+  <circle cx="100" cy="23" r="1.5" fill="#FFF" opacity="0.7"/>
+  <circle cx="148" cy="33" r="1.5" fill="#FFF" opacity="0.7"/>
+  <circle cx="163" cy="75" r="1.5" fill="#FFF" opacity="0.7"/>
+  <circle cx="148" cy="117" r="1.5" fill="#FFF" opacity="0.7"/>
+  <circle cx="100" cy="150" r="1.5" fill="#FFF" opacity="0.7"/>
+  <circle cx="52" cy="117" r="1.5" fill="#FFF" opacity="0.7"/>
+  <circle cx="37" cy="75" r="1.5" fill="#FFF" opacity="0.7"/>
+  <circle cx="52" cy="33" r="1.5" fill="#FFF" opacity="0.7"/>
+</svg>

@@ -1,0 +1,80 @@
+{
+  "name": "synapse-state",
+  "private": false,
+  "version": "1.0.0-alpha",
+  "type": "module",
+  "description": "A thin, powerful state management library for React with saga-like effects and API integration",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.umd.js"
+    }
+  },
+  "main": "./dist/index.umd.js",
+  "module": "./dist/index.es.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "synapse": "./dist/cli/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "start": "vite",
+    "dev": "vite --host",
+    "build:lib": "tsc -p tsconfig.types.json && vite build",
+    "build": "echo '🧠 Building Synapse...' && npm run build:lib && echo '✅ Build complete!'",
+    "build:cli": "tsc -p tsconfig.cli.json",
+    "demo": "npm run dev",
+    "lint": "eslint .",
+    "lint:fix": "eslint --no-cache . --fix",
+    "preview": "vite preview",
+    "publish": "npm publish --access=public"
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0"
+  },
+  "dependencies": {
+    "axios": "^1.7.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.21.0",
+    "@types/node": "^22.13.10",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "@vitejs/plugin-react": "^4.3.4",
+    "commander": "^12.1.0",
+    "eslint": "^9.21.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-refresh": "^0.4.19",
+    "globals": "^15.15.0",
+    "nodemon": "^3.1.9",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "typescript": "~5.7.2",
+    "typescript-eslint": "^8.24.1",
+    "vite": "^6.2.0",
+    "vite-plugin-dts": "^4.5.3"
+  },
+  "keywords": [
+    "react",
+    "state",
+    "management",
+    "redux",
+    "store",
+    "hooks",
+    "saga",
+    "middleware",
+    "synapse"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": ""
+  }
+}
+
