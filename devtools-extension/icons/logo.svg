@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- Octopus holding state - Synapse DevTools Logo -->
+  <defs>
+    <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#66d9ef"/>
+      <stop offset="100%" style="stop-color:#4a9eb8"/>
+    </linearGradient>
+    <linearGradient id="tentacleGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4a9eb8"/>
+      <stop offset="100%" style="stop-color:#357a8c"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Head/Body -->
+  <ellipse cx="64" cy="44" rx="36" ry="32" fill="url(#bodyGrad)"/>
+  
+  <!-- Eyes -->
+  <ellipse cx="50" cy="40" rx="8" ry="10" fill="white"/>
+  <ellipse cx="78" cy="40" rx="8" ry="10" fill="white"/>
+  <circle cx="52" cy="42" r="4" fill="#2f3129"/>
+  <circle cx="80" cy="42" r="4" fill="#2f3129"/>
+  <circle cx="53" cy="41" r="1.5" fill="white"/>
+  <circle cx="81" cy="41" r="1.5" fill="white"/>
+  
+  <!-- State Box being held -->
+  <rect x="46" y="56" width="36" height="28" rx="4" fill="#a6e22e" opacity="0.9"/>
+  <text x="64" y="74" text-anchor="middle" font-family="monospace" font-size="10" fill="#2f3129" font-weight="bold">{S}</text>
+  
+  <!-- Tentacles -->
+  <path d="M28 76 Q20 90 16 105 Q14 115 22 118" stroke="url(#tentacleGrad)" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <path d="M38 80 Q28 95 24 108 Q22 118 30 120" stroke="url(#tentacleGrad)" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <path d="M46 82 Q40 95 38 108 Q36 118 44 120" stroke="url(#tentacleGrad)" stroke-width="6" fill="none" stroke-linecap="round"/>
+  
+  <path d="M100 76 Q108 90 112 105 Q114 115 106 118" stroke="url(#tentacleGrad)" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <path d="M90 80 Q100 95 104 108 Q106 118 98 120" stroke="url(#tentacleGrad)" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <path d="M82 82 Q88 95 90 108 Q92 118 84 120" stroke="url(#tentacleGrad)" stroke-width="6" fill="none" stroke-linecap="round"/>
+</svg>
+

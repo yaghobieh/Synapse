@@ -1,80 +1,87 @@
 {
-  "name": "synapse-state",
-  "private": false,
-  "version": "1.0.0-alpha",
-  "type": "module",
-  "description": "A thin, powerful state management library for React with saga-like effects and API integration",
+  "name": "@forgedevstack/synapse",
+  "version": "1.0.0",
+  "description": "Synapse - Ultra-simple state management for React. No dispatch, no reducers, just signals.",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.es.js",
-      "require": "./dist/index.umd.js"
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./devtools": {
+      "import": "./dist/devtools/index.mjs",
+      "require": "./dist/devtools/index.js",
+      "types": "./dist/devtools/index.d.ts"
+    },
+    "./middleware": {
+      "import": "./dist/middleware/index.mjs",
+      "require": "./dist/middleware/index.js",
+      "types": "./dist/middleware/index.d.ts"
     }
   },
-  "main": "./dist/index.umd.js",
-  "module": "./dist/index.es.js",
-  "types": "./dist/index.d.ts",
-  "bin": {
-    "synapse": "./dist/cli/index.js"
-  },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "CHANGELOG.md"
   ],
-  "sideEffects": false,
   "scripts": {
-    "start": "vite",
-    "dev": "vite --host",
-    "build:lib": "tsc -p tsconfig.types.json && vite build",
-    "build": "echo '🧠 Building Synapse...' && npm run build:lib && echo '✅ Build complete!'",
-    "build:cli": "tsc -p tsconfig.cli.json",
-    "demo": "npm run dev",
-    "lint": "eslint .",
-    "lint:fix": "eslint --no-cache . --fix",
-    "preview": "vite preview",
-    "publish": "npm publish --access=public"
-  },
-  "peerDependencies": {
-    "react": ">=16.8.0",
-    "react-dom": ">=16.8.0"
-  },
-  "dependencies": {
-    "axios": "^1.7.0"
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.21.0",
-    "@types/node": "^22.13.10",
-    "@types/react": "^19.0.10",
-    "@types/react-dom": "^19.0.4",
-    "@vitejs/plugin-react": "^4.3.4",
-    "commander": "^12.1.0",
-    "eslint": "^9.21.0",
-    "eslint-plugin-react-hooks": "^5.1.0",
-    "eslint-plugin-react-refresh": "^0.4.19",
-    "globals": "^15.15.0",
-    "nodemon": "^3.1.9",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "typescript": "~5.7.2",
-    "typescript-eslint": "^8.24.1",
-    "vite": "^6.2.0",
-    "vite-plugin-dts": "^4.5.3"
+    "build": "tsup src/index.ts src/devtools/index.ts src/middleware/index.ts --format cjs,esm --dts --clean",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "lint": "eslint src --ext .ts,.tsx",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "prepublishOnly": "npm run build",
+    "release": "npm run build && npm publish --access public",
+    "release:patch": "npm version patch && npm run release",
+    "release:minor": "npm version minor && npm run release",
+    "release:major": "npm version major && npm run release"
   },
   "keywords": [
     "react",
     "state",
-    "management",
-    "redux",
-    "store",
+    "state-management",
+    "signals",
+    "zustand-alternative",
+    "redux-alternative",
+    "typescript",
     "hooks",
-    "saga",
-    "middleware",
+    "devtools",
+    "forgestack",
     "synapse"
   ],
-  "author": "",
+  "author": "John Yaghobieh",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/yaghobieh/Synapse"
+  },
+  "bugs": {
+    "url": "https://github.com/yaghobieh/Synapse/issues"
+  },
+  "homepage": "https://forgedevstack.com/",
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": false
+    },
+    "react-dom": {
+      "optional": false
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.9",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
   }
 }
-

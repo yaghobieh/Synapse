@@ -1,8 +1,7 @@
 /**
- * Synapse - Utils Index
- * Exports all utilities
+ * Synapse Utilities - Export all utils
  */
 
-export * from "./logger";
-export * from "./helpers";
+export * from './object';
+export * from './naming';
 

@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="octopusGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#a855f7"/>
+      <stop offset="50%" style="stop-color:#8b5cf6"/>
+      <stop offset="100%" style="stop-color:#6366f1"/>
+    </linearGradient>
+    <linearGradient id="tentacleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#c084fc"/>
+      <stop offset="100%" style="stop-color:#818cf8"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="64" cy="64" r="60" fill="#1e1e2e" stroke="url(#octopusGradient)" stroke-width="3"/>
+  
+  <!-- Octopus head -->
+  <ellipse cx="64" cy="50" rx="28" ry="24" fill="url(#octopusGradient)" filter="url(#glow)"/>
+  
+  <!-- Eyes -->
+  <ellipse cx="54" cy="48" rx="8" ry="10" fill="#1e1e2e"/>
+  <ellipse cx="74" cy="48" rx="8" ry="10" fill="#1e1e2e"/>
+  <circle cx="56" cy="46" r="3" fill="#fff"/>
+  <circle cx="76" cy="46" r="3" fill="#fff"/>
+  
+  <!-- Tentacles (8 data connections) -->
+  <!-- Left tentacles -->
+  <path d="M36 60 Q20 70, 18 90 Q16 100, 24 102" stroke="url(#tentacleGradient)" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M42 66 Q30 80, 32 100 Q33 108, 40 106" stroke="url(#tentacleGradient)" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <path d="M50 70 Q44 85, 48 102 Q50 110, 56 107" stroke="url(#tentacleGradient)" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M58 72 Q56 90, 60 105 Q62 112, 68 108" stroke="url(#tentacleGradient)" stroke-width="4" fill="none" stroke-linecap="round"/>
+  
+  <!-- Right tentacles -->
+  <path d="M92 60 Q108 70, 110 90 Q112 100, 104 102" stroke="url(#tentacleGradient)" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M86 66 Q98 80, 96 100 Q95 108, 88 106" stroke="url(#tentacleGradient)" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <path d="M78 70 Q84 85, 80 102 Q78 110, 72 107" stroke="url(#tentacleGradient)" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M70 72 Q72 90, 68 105 Q66 112, 60 108" stroke="url(#tentacleGradient)" stroke-width="4" fill="none" stroke-linecap="round"/>
+  
+  <!-- Data nodes on tentacle tips -->
+  <circle cx="24" cy="102" r="4" fill="#22d3ee"/>
+  <circle cx="40" cy="106" r="3" fill="#22d3ee"/>
+  <circle cx="56" cy="107" r="3" fill="#22d3ee"/>
+  <circle cx="68" cy="108" r="3" fill="#22d3ee"/>
+  <circle cx="104" cy="102" r="4" fill="#22d3ee"/>
+  <circle cx="88" cy="106" r="3" fill="#22d3ee"/>
+  <circle cx="72" cy="107" r="3" fill="#22d3ee"/>
+  <circle cx="60" cy="108" r="3" fill="#22d3ee"/>
+  
+  <!-- Connecting lines (neural synapses) -->
+  <line x1="24" y1="102" x2="40" y2="106" stroke="#22d3ee" stroke-width="1" opacity="0.5"/>
+  <line x1="40" y1="106" x2="56" y2="107" stroke="#22d3ee" stroke-width="1" opacity="0.5"/>
+  <line x1="56" y1="107" x2="68" y2="108" stroke="#22d3ee" stroke-width="1" opacity="0.5"/>
+  <line x1="68" y1="108" x2="72" y2="107" stroke="#22d3ee" stroke-width="1" opacity="0.5"/>
+  <line x1="72" y1="107" x2="88" y2="106" stroke="#22d3ee" stroke-width="1" opacity="0.5"/>
+  <line x1="88" y1="106" x2="104" y2="102" stroke="#22d3ee" stroke-width="1" opacity="0.5"/>
+</svg>
+

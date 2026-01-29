@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Synapse DevTools</title>
+  <link rel="stylesheet" href="panel.css">
+</head>
+<body>
+  <div id="synapse-devtools">
+    <header class="header">
+      <div class="logo" id="logo-container"></div>
+      <div class="search-box">
+        <input type="text" id="search-input" placeholder="Search state..." />
+      </div>
+      <div class="toolbar">
+        <button id="snapshot-btn" class="tool-btn" title="Save Snapshot"></button>
+        <button id="export-btn" class="tool-btn" title="Export State"></button>
+        <button id="import-btn" class="tool-btn" title="Import State"></button>
+        <button id="clear-btn" class="tool-btn" title="Clear"></button>
+      </div>
+    </header>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Actions Panel (Left) -->
+      <div class="actions-panel">
+        <div class="panel-header">
+          <span>Actions</span>
+          <span id="action-count" class="badge">0</span>
+        </div>
+        <div id="actions-list" class="actions-list"></div>
+        
+        <!-- Snapshots -->
+        <div class="snapshots-section">
+          <div class="panel-header">Snapshots</div>
+          <div id="snapshots-list" class="snapshots-list"></div>
+        </div>
+      </div>
+      
+      <!-- Right Panel -->
+      <div class="right-panel">
+        <!-- Tabs -->
+        <div class="tabs">
+          <button class="tab active" data-tab="diff">Diff</button>
+          <button class="tab" data-tab="state">State</button>
+          <button class="tab" data-tab="action">Action</button>
+          <button class="tab" data-tab="perf">Perf</button>
+        </div>
+        
+        <!-- Tab Contents -->
+        <div class="tab-contents">
+          <!-- Diff Tab -->
+          <div id="diff-tab" class="tab-content active"></div>
+          
+          <!-- State Tab -->
+          <div id="state-tab" class="tab-content"></div>
+          
+          <!-- Action Tab -->
+          <div id="action-tab" class="tab-content"></div>
+          
+          <!-- Perf Tab -->
+          <div id="perf-tab" class="tab-content"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Status Bar -->
+    <footer class="status-bar">
+      <span id="status-text">Ready</span>
+      <span id="perf-stats"></span>
+    </footer>
+    
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <span>Edit Value</span>
+          <button id="close-modal" class="close-btn">×</button>
+        </div>
+        <div class="modal-body">
+          <div id="edit-path" class="edit-path"></div>
+          <textarea id="edit-value"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button id="cancel-edit" class="btn secondary">Cancel</button>
+          <button id="save-edit" class="btn primary">Apply to Page</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Import Modal -->
+    <div id="import-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <span>Import State</span>
+          <button id="close-import" class="close-btn">×</button>
+        </div>
+        <div class="modal-body">
+          <textarea id="import-value" placeholder="Paste JSON state here..."></textarea>
+        </div>
+        <div class="modal-footer">
+          <button id="cancel-import" class="btn secondary">Cancel</button>
+          <button id="do-import" class="btn primary">Import</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="panel.js"></script>
+</body>
+</html>

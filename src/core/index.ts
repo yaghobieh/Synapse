@@ -1,5 +1,7 @@
-export * from "./createStore";
-export * from "./combineReducers";
-export * from "./createSlice";
-export * from "./middleware";
-export * from "@api/apiMiddleware";
+/**
+ * Synapse Core - Export all core functionality
+ */
+
+export { createNucleus, applyMiddleware } from './nucleus';
+export { signal, computed, batch, effect } from './signal';
+

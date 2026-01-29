@@ -1,146 +1,221 @@
-# 🧠 Synapse
+# 🐙 Synapse
 
-A thin, powerful state management library for React with saga-like effects and API integration.
+> Ultra-simple state management for React. No dispatch, no reducers, just signals.
 
-<p align="center">
-  <img src="public/synapse-icon.svg" alt="Synapse Logo" width="120" height="120">
-</p>
+[![npm version](https://img.shields.io/npm/v/@forgedevstack/synapse.svg)](https://www.npmjs.com/package/@forgedevstack/synapse)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/@forgedevstack/synapse)](https://bundlephobia.com/package/@forgedevstack/synapse)
+[![license](https://img.shields.io/npm/l/@forgedevstack/synapse.svg)](https://github.com/yaghobieh/ForgeStack/blob/main/LICENSE)
 
-## 🚀 Quick Start
+## Why Synapse?
 
-### Run the Demo
+State management shouldn't be complicated. Synapse makes it as simple as:
 
-```bash
-# Install dependencies
-npm install
+```tsx
+// Create your state
+const counterNucleus = createNucleus((set) => ({
+  count: 0,
+  increment: () => set((s) => ({ count: s.count + 1 })),
+  decrement: () => set((s) => ({ count: s.count - 1 })),
+}));
 
-# Start the demo app
-npm run dev
+// Use in components
+function Counter() {
+  const { count, increment, decrement } = useNucleus(counterNucleus);
+  return <button onClick={increment}>{count}</button>;
+}
 ```
 
-Open [http://localhost:5173](http://localhost:5173) to see the interactive demo!
-
-### What You'll See
-
-- **Counter Demo** - Basic state management, async actions, multi-action dispatch, waitFor
-- **User List** - API integration with `useQuery` hook and `createApiAction`
-- **Todo App** - Full CRUD operations with filtering and persistence
-- **API Examples** - `useQuery`, `useLazyQuery`, `useMutation`, direct API actions
+**No dispatch. No reducers. No selectors. No boilerplate.**
 
 ## Features
 
-- 🪶 **Lightweight** - Thin Redux-like API without the boilerplate
-- ⚡ **React 16.8+** - Works with all React versions (16.8+, 17, 18, 19)
-- 🔄 **Middleware** - Logger, thunk, API, and custom middleware support
-- 🎣 **Hooks** - `useSelector`, `useDispatch`, `useQuery`, `useMutation`, `useLazyQuery`
-- 🌐 **API Integration** - Built-in Axios integration with `{ isLoading, error, data, headers }`
-- 🛠️ **CLI** - Generate slices, stores, and boilerplate with one command
-- 📝 **Config File** - `synapse.config.json` for customization
-- 🔧 **DevTools** - Chrome extension for debugging (included)
-- 📦 **TypeScript** - Full TypeScript support
+- **Ultra-simple API** - Create state in seconds
+- **Tiny bundle** - < 2KB gzipped
+- **Fast** - Minimal re-renders with fine-grained subscriptions
+- **DevTools** - Chrome/Safari extension for debugging
+- **TypeScript** - Full type safety out of the box
+- **Middleware** - Logger, persist, immer-like updates
+- **API integration** - Built-in hooks for data fetching
+- **Time travel** - Debug with state history
+- **React 16.8+** - Works with all modern React versions
 
 ## Installation
 
 ```bash
-npm install synapse-state
+npm i @forgedevstack/synapse
 # or
-yarn add synapse-state
+yarn add @forgedevstack/synapse
 # or
-pnpm add synapse-state
+pnpm add @forgedevstack/synapse
 ```
 
 ## Quick Start
 
-### 1. Create a Slice
+### 1. Create a Nucleus (State Container)
 
-```typescript
-// src/store/slices/counter/counter.slice.ts
-import { createSlice } from 'synapse-state';
+```tsx
+import { createNucleus } from '@forgedevstack/synapse';
 
-interface CounterState {
-  value: number;
+interface UserState {
+  user: { name: string; email: string } | null;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => void;
 }
 
-const initialState: CounterState = {
-  value: 0,
-};
-
-export const counterSlice = createSlice({
-  name: 'counter',
-  initialState,
-  reducers: {
-    increment: (state) => {
-      state.value += 1;
-    },
-    decrement: (state) => {
-      state.value -= 1;
-    },
-    incrementByAmount: (state, action) => {
-      state.value += action.payload;
-    },
+export const userNucleus = createNucleus<UserState>((set) => ({
+  user: null,
+  loading: false,
+  
+  login: async (email, password) => {
+    set({ loading: true });
+    const user = await api.login(email, password);
+    set({ user, loading: false });
   },
-});
-
-export const { increment, decrement, incrementByAmount } = counterSlice.actions;
-export const counterReducer = counterSlice.reducer;
+  
+  logout: () => set({ user: null }),
+}));
 ```
 
-### 2. Configure Store
-
-```typescript
-// src/store/store.ts
-import { createStore, combineReducers, thunkMiddleware, loggerMiddleware } from 'synapse-state';
-import { counterReducer } from './slices/counter';
-
-const rootReducer = combineReducers({
-  counter: counterReducer,
-});
-
-export const store = createStore(rootReducer, {
-  middleware: [thunkMiddleware(), loggerMiddleware()],
-  devTools: true,
-  debug: process.env.NODE_ENV !== 'production',
-});
-
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
-```
-
-### 3. Wrap Your App
+### 2. Use in Components
 
 ```tsx
-// src/App.tsx
-import { SynapseProvider } from 'synapse-state';
-import { store } from './store';
+import { useNucleus, usePick } from '@forgedevstack/synapse';
+import { userNucleus } from './state/user';
 
-function App() {
-  return (
-    <SynapseProvider store={store}>
-      <YourApp />
-    </SynapseProvider>
-  );
-}
-```
-
-### 4. Use in Components
-
-```tsx
-// src/components/Counter.tsx
-import { useSelector, useDispatch } from 'synapse-state';
-import { increment, decrement } from '../store/slices/counter';
-
-function Counter() {
-  const count = useSelector((state) => state.counter.value);
-  const dispatch = useDispatch();
-
+// Use entire state
+function UserProfile() {
+  const { user, logout } = useNucleus(userNucleus);
+  
+  if (!user) return <LoginForm />;
+  
   return (
     <div>
-      <button onClick={() => dispatch(decrement())}>-</button>
-      <span>{count}</span>
-      <button onClick={() => dispatch(increment())}>+</button>
+      <h1>Welcome, {user.name}!</h1>
+      <button onClick={logout}>Logout</button>
     </div>
   );
 }
+
+// Or pick specific values (optimized re-renders)
+function UserName() {
+  const name = usePick(userNucleus, (s) => s.user?.name);
+  return <span>{name}</span>;
+}
+```
+
+## Core Concepts
+
+### Nucleus vs Store
+
+In Synapse, we use **Nucleus** instead of "store". A nucleus is the core of your state - it holds the state and provides methods to update it.
+
+| Redux/Zustand | Synapse |
+|--------------|---------|
+| `store` | `nucleus` |
+| `dispatch(action)` | `set({ ... })` |
+| `useSelector()` | `usePick()` |
+| `createStore()` | `createNucleus()` |
+
+### Signals (Reactive Primitives)
+
+For simpler state, use signals:
+
+```tsx
+import { signal, useSignal } from '@forgedevstack/synapse';
+
+// Create a signal
+const count = signal(0);
+
+// Use in component
+function Counter() {
+  const value = useSignal(count);
+  return (
+    <button onClick={() => count.set((v) => v + 1)}>
+      {value}
+    </button>
+  );
+}
+```
+
+### Computed Values
+
+Derive values from signals:
+
+```tsx
+import { signal, computed, useComputed } from '@forgedevstack/synapse';
+
+const firstName = signal('John');
+const lastName = signal('Doe');
+
+const fullName = computed(() => 
+  `${firstName.value} ${lastName.value}`
+);
+
+function Name() {
+  const name = useComputed(fullName);
+  return <h1>{name}</h1>;
+}
+```
+
+## Middleware
+
+### Logger
+
+```tsx
+import { createNucleus } from '@forgedevstack/synapse';
+import { logger } from '@forgedevstack/synapse/middleware';
+
+const myNucleus = createNucleus(
+  (set) => ({ count: 0 }),
+  { 
+    middleware: [
+      logger({ diff: true, timestamp: true })
+    ] 
+  }
+);
+```
+
+### Persist
+
+```tsx
+import { persist } from '@forgedevstack/synapse/middleware';
+
+const userNucleus = createNucleus(
+  (set) => ({
+    name: '',
+    email: '',
+    preferences: { theme: 'dark' },
+  }),
+  {
+    middleware: [
+      persist({
+        key: 'user-state',
+        storage: 'local', // 'local' | 'session' | custom
+        include: ['preferences'], // Only persist preferences
+      })
+    ]
+  }
+);
+```
+
+### Immer-like Updates
+
+```tsx
+import { immer } from '@forgedevstack/synapse/middleware';
+
+const todosNucleus = createNucleus(
+  (set) => ({
+    todos: [{ id: 1, text: 'Learn Synapse', done: false }],
+    
+    toggle: (id: number) => set((draft) => {
+      // Looks mutable, works immutably!
+      const todo = draft.todos.find(t => t.id === id);
+      if (todo) todo.done = !todo.done;
+    }),
+  }),
+  { middleware: [immer()] }
+);
 ```
 
 ## API Hooks
@@ -148,274 +223,181 @@ function Counter() {
 ### useQuery
 
 ```tsx
-import { useQuery } from 'synapse-state';
+import { useQuery } from '@forgedevstack/synapse';
 
-function UserProfile({ userId }) {
-  const { data, isLoading, error, headers, statusCode, refetch } = useQuery({
-    url: `/api/users/${userId}`,
-    method: 'GET',
-    enabled: !!userId,
-    refetchInterval: 30000,
-    onSuccess: (data) => console.log('Fetched:', data),
-  });
-
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
+function UserList() {
+  const { data, loading, error, refetch } = useQuery(
+    () => fetch('/api/users').then(r => r.json()),
+    { refetchOnFocus: true }
+  );
   
-  return <div>{data.name}</div>;
+  if (loading) return <Spinner />;
+  if (error) return <Error message={error.message} />;
+  
+  return (
+    <ul>
+      {data?.map(user => <li key={user.id}>{user.name}</li>)}
+    </ul>
+  );
 }
 ```
 
 ### useMutation
 
 ```tsx
-import { useMutation } from 'synapse-state';
+import { useMutation } from '@forgedevstack/synapse';
 
 function CreateUser() {
-  const { mutate, isLoading, isSuccess, error } = useMutation({
-    url: '/api/users',
-    method: 'POST',
-    onSuccess: (data) => console.log('Created:', data),
-  });
-
-  const handleSubmit = (formData) => {
-    mutate(formData);
-  };
-
+  const { mutate, loading } = useMutation(
+    (data) => fetch('/api/users', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }).then(r => r.json()),
+    {
+      onSuccess: (user) => navigate(`/users/${user.id}`),
+    }
+  );
+  
   return (
-    <form onSubmit={handleSubmit}>
-      {/* form fields */}
-      <button disabled={isLoading}>
-        {isLoading ? 'Creating...' : 'Create User'}
-      </button>
+    <form onSubmit={(e) => {
+      e.preventDefault();
+      mutate({ name: e.target.name.value });
+    }}>
+      <input name="name" />
+      <button disabled={loading}>Create</button>
     </form>
   );
 }
 ```
 
-## Saga-like Effects
+## DevTools
 
-### useTakeEvery / useTakeLatest
+Install the Synapse DevTools browser extension to:
 
-```tsx
-import { useTakeEvery, useTakeLatest } from 'synapse-state';
+- Inspect all nuclei in your app
+- Time-travel through state history
+- Export/import state for debugging
+- Reset state to initial values
 
-function NotificationHandler() {
-  // Handle every action
-  useTakeEvery('user/login', async (action) => {
-    await showNotification('Welcome back!');
-  });
-
-  // Only handle the latest (cancels previous)
-  useTakeLatest('search/query', async (action) => {
-    const results = await searchApi(action.payload);
-    dispatch(setSearchResults(results));
-  });
-
-  return null;
-}
-```
-
-### Generator-based Sagas
-
-```typescript
-import { createSagaMiddleware, takeLatest, put, call, select } from 'synapse-state';
-
-function* fetchUserSaga(action) {
-  try {
-    yield put({ type: 'user/loading' });
-    const user = yield call(fetchUser, action.payload.id);
-    yield put({ type: 'user/success', payload: user });
-  } catch (error) {
-    yield put({ type: 'user/error', payload: error.message });
-  }
-}
-
-function* rootSaga() {
-  yield takeLatest('user/fetch', fetchUserSaga);
-}
-```
-
-## CLI
-
-### Initialize Configuration
-
-```bash
-npx synapse init
-```
-
-Creates `synapse.config.json`:
-
-```json
-{
-  "storePath": "./src/store",
-  "slicesPath": "./src/store/slices",
-  "actionType": {
-    "case": "UPPER_SNAKE",
-    "prefix": "",
-    "suffix": ""
-  },
-  "dispatch": {
-    "startAction": false,
-    "endAction": false
-  },
-  "debug": {
-    "enabled": false,
-    "logger": false,
-    "devtools": true
-  },
-  "api": {
-    "baseURL": "",
-    "timeout": 30000
-  }
-}
-```
-
-### Generate Slice
-
-```bash
-npx synapse slice users
-# or
-npx synapse generate slice users
-```
-
-Creates:
-```
-src/store/slices/users/
-├── users.slice.ts
-├── users.types.ts
-├── users.api.ts
-├── users.saga.ts
-└── index.ts
-```
-
-### Generate Store
-
-```bash
-npx synapse store
-```
-
-Creates:
-```
-src/store/
-├── store.ts
-├── store.types.ts
-├── rootReducer.ts
-├── rootSaga.ts
-└── index.ts
-```
+[Download for Chrome](https://chrome.google.com/webstore/detail/synapse-devtools) | [Download for Safari](https://apps.apple.com/app/synapse-devtools)
 
 ## Configuration
 
-### synapse.config.json
+### Synapse Config
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `storePath` | Path to store directory | `./src/store` |
-| `slicesPath` | Path to slices directory | `./src/store/slices` |
-| `actionType.case` | Action type case style | `UPPER_SNAKE` |
-| `dispatch.startAction` | Dispatch START actions | `false` |
-| `dispatch.endAction` | Dispatch END actions | `false` |
-| `debug.enabled` | Enable debug mode | `false` |
-| `debug.logger` | Enable logger | `false` |
-| `debug.devtools` | Enable DevTools | `true` |
-| `api.baseURL` | API base URL | `""` |
-| `api.timeout` | API timeout (ms) | `30000` |
+```tsx
+import { createNucleus, type SynapseConfig } from '@forgedevstack/synapse';
 
-### Runtime Configuration
-
-```typescript
-import { initConfig } from 'synapse-state';
-
-initConfig({
-  debug: {
-    enabled: true,
-    logger: true,
+const config: SynapseConfig = {
+  // Action naming convention
+  actionNaming: 'camelCase', // 'camelCase' | 'PascalCase' | 'snake_case' | 'SCREAMING_SNAKE_CASE'
+  
+  // DevTools (auto-enabled in development)
+  devtools: true,
+  devtoolsName: 'MyApp',
+  
+  // Enable action logging
+  logging: process.env.NODE_ENV === 'development',
+  
+  // Persist state
+  persist: {
+    key: 'app-state',
+    storage: 'local',
   },
-  api: {
-    baseURL: 'https://api.example.com',
-    timeout: 10000,
-  },
-});
-```
-
-## DevTools Extension
-
-The Synapse DevTools Chrome extension allows you to:
-
-- 📋 View all dispatched actions
-- 🔍 Inspect current state
-- 📊 See state diff between actions
-- 🌐 Execute API calls directly from DevTools
-- ⏰ Time-travel debugging (coming soon)
-
-### Installation
-
-1. Open Chrome Extensions (`chrome://extensions`)
-2. Enable "Developer mode"
-3. Click "Load unpacked"
-4. Select the `synapse/devtools` folder
-
-## Middleware
-
-### Built-in Middleware
-
-```typescript
-import {
-  thunkMiddleware,
-  loggerMiddleware,
-  createApiMiddleware,
-  createSagaMiddleware,
-  dispatchActionsMiddleware,
-} from 'synapse-state';
-
-const store = createStore(rootReducer, {
-  middleware: [
-    thunkMiddleware(),
-    createApiMiddleware({
-      transformResponse: (data) => data.result,
-    }),
-    loggerMiddleware({
-      collapsed: true,
-      diff: true,
-    }),
-  ],
-});
-```
-
-### Custom Middleware
-
-```typescript
-const myMiddleware = (api) => (next) => (action) => {
-  console.log('Before:', action.type);
-  const result = next(action);
-  console.log('After:', action.type);
-  return result;
 };
+
+const appNucleus = createNucleus((set) => ({
+  // state...
+}), config);
 ```
 
 ## TypeScript
 
-### Typed Hooks
+Synapse is written in TypeScript and provides excellent type inference:
 
-```typescript
-import { useSelector, useDispatch } from 'synapse-state';
-import type { RootState, AppDispatch } from './store';
+```tsx
+interface Todo {
+  id: number;
+  text: string;
+  done: boolean;
+}
 
-// Create typed hooks
-export const useAppSelector = <T>(selector: (state: RootState) => T) => 
-  useSelector<RootState, T>(selector);
+interface TodosState {
+  todos: Todo[];
+  filter: 'all' | 'active' | 'done';
+  addTodo: (text: string) => void;
+  toggleTodo: (id: number) => void;
+  setFilter: (filter: 'all' | 'active' | 'done') => void;
+}
 
-export const useAppDispatch = () => useDispatch<AppDispatch>();
+const todosNucleus = createNucleus<TodosState>((set) => ({
+  todos: [],
+  filter: 'all',
+  
+  addTodo: (text) => set((state) => ({
+    todos: [...state.todos, { id: Date.now(), text, done: false }],
+  })),
+  
+  toggleTodo: (id) => set((state) => ({
+    todos: state.todos.map(t => 
+      t.id === id ? { ...t, done: !t.done } : t
+    ),
+  })),
+  
+  setFilter: (filter) => set({ filter }),
+}));
 ```
+
+## API Reference
+
+### Core
+
+| Function | Description |
+|----------|-------------|
+| `createNucleus(initializer, config?)` | Create a new nucleus |
+| `signal(initialValue)` | Create a reactive signal |
+| `computed(computeFn)` | Create a derived signal |
+| `batch(fn)` | Batch multiple updates |
+| `effect(fn)` | Run side effects on signal changes |
+
+### Hooks
+
+| Hook | Description |
+|------|-------------|
+| `useNucleus(nucleus)` | Use entire nucleus state |
+| `usePick(nucleus, selector)` | Use selected state slice |
+| `useNuclei([...nuclei])` | Use multiple nuclei |
+| `useSignal(signal)` | Use signal value |
+| `useComputed(computed)` | Use computed value |
+| `useQuery(fetcher, options?)` | Fetch data with state |
+| `useMutation(mutationFn, options?)` | Handle mutations |
+| `useSubscribe(nucleus, callback)` | Subscribe to changes |
+| `useSnapshot(nucleus)` | Get state without subscribing |
+
+### Middleware
+
+| Middleware | Description |
+|------------|-------------|
+| `logger(options?)` | Log state changes |
+| `persist(options)` | Persist state to storage |
+| `immer()` | Enable mutable-style updates |
+
+## Comparison
+
+| Feature | Synapse | Redux | Zustand | Jotai |
+|---------|---------|-------|---------|-------|
+| Bundle size | ~2KB | ~7KB | ~1KB | ~3KB |
+| Boilerplate | Minimal | Heavy | Low | Low |
+| TypeScript | Native | Needs setup | Good | Good |
+| DevTools | Built-in | Extension | Extension | Extension |
+| Async actions | Native | Middleware | Native | Native |
+| Learning curve | Easy | Steep | Easy | Medium |
 
 ## License
 
-MIT © 2026
+MIT © [John Yaghobieh](https://github.com/yaghobieh/Synapse)
 
 ---
 
-<p align="center">
-  Made with 🧠 by the Synapse team
-</p>
+Part of the [ForgeStack](https://forgedevstack.com/) ecosystem.
 
