@@ -1,81 +1,54 @@
 # Changelog
 
-All notable changes to Synapse will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [0.1.0] - 2026-01-18
-
-### 🎉 Initial Release
-
-Welcome to Synapse - ultra-simple state management for React!
-
-### Added
-
-#### Core
-- **`createNucleus`** - Create state containers with a simple API
-- **`signal`** - Reactive primitives for fine-grained reactivity
-- **`computed`** - Derived values that update automatically
-- **`batch`** - Batch multiple updates for performance
-- **`effect`** - Run side effects on state changes
-
-#### Hooks
-- **`useNucleus`** - Use entire nucleus state in components
-- **`usePick`** - Select specific state slices with optimized re-renders
-- **`useNuclei`** - Use multiple nuclei together
-- **`useSignal`** - Use signal values in components
-- **`useComputed`** - Use computed values in components
-- **`useLocalSignal`** - Create component-local signals
-- **`useLocalComputed`** - Create component-local computed values
-- **`useQuery`** - Data fetching with loading/error states
-- **`useMutation`** - Handle mutations with status tracking
-- **`useApi`** - Simplified REST API operations
-- **`useSubscribe`** - Subscribe to state changes
-- **`useSnapshot`** - Get state without subscribing
-- **`useAction`** - Create stable action references
-
-#### Middleware
-- **`logger`** - Log state changes for debugging
-- **`persist`** - Persist state to localStorage/sessionStorage
-- **`immer`** - Enable mutable-style immutable updates
-
-#### DevTools
-- Chrome/Safari extension for state inspection
-- Time-travel debugging
-- State export/import
-- Reset functionality
-
-#### Utilities
-- Deep clone and merge utilities
-- Naming convention converters (camelCase, PascalCase, snake_case, SCREAMING_SNAKE_CASE)
-- Deep equality checking
-- Path-based object access
-
-### Features
-- 🚀 Ultra-simple API - no dispatch, no reducers, no selectors
-- 🪶 Tiny bundle size (< 2KB gzipped)
-- ⚡ Minimal re-renders with fine-grained subscriptions
-- 📦 Full TypeScript support with type inference
-- 🔌 Extensible middleware system
-- 🌐 Built-in API integration hooks
-- ⏱️ Time-travel debugging with DevTools
-- 🎯 Compatible with React 16.8+
+All notable changes to **Synapse** are documented here.
 
 ---
 
-## Roadmap
+## [1.2.0] — 2026-03-03
 
-### [0.2.0] - Planned
-- [ ] React Server Components support
-- [ ] Improved DevTools with state diff visualization
-- [ ] Safari extension for DevTools
-- [ ] Undo/redo middleware
-- [ ] Form integration utilities
+### Added
 
-### [0.3.0] - Future
-- [ ] React Native support
-- [ ] Server-side state hydration
-- [ ] Concurrent mode optimizations
-- [ ] State machine integration
+- **API tracker: request and response headers** — `initApiTracking()` now records `requestHeaders` and `responseHeaders` for each intercepted `fetch` call, so DevTools can show full request/response details (RTK-style).
 
+### Changed
+
+- None.
+
+---
+
+## [1.1.0] — 2026-02-24
+
+### Added
+
+- **`useNucleus` selector overload** — `useNucleus(n, s => s.foo)` subscribes to a slice with optimised re-renders, removing the need for a separate `usePick` call in most cases.
+- **`useNucleusSlice`** — pick multiple keys from a nucleus in a single subscription: `useNucleusSlice(n, ['count', 'increment'])`.
+- **`batchUpdates`** — explicit batching for synchronous nucleus updates. All `set()` calls inside `batchUpdates(() => { … })` produce a single listener notification.
+- **`shallowEqual` utility** — new `shallowEqual(a, b)` function in `utils/object`. Used as the default equality function in `usePick`, replacing `Object.is` for object / array slices.
+- **`usePick` shallow equality default** — selectors that return objects or arrays no longer cause spurious re-renders when the top-level values haven't changed.
+- **`subscribeWithSelector` middleware** — external subscribers can now filter by a selector so they only fire when a specific slice changes.
+- **Testing utilities** (`@forgedevstack/synapse/testing`):
+  - `createTestNucleus(init, overrides?)` — creates a nucleus with devtools & persist disabled.
+  - `waitForState(n, predicate, opts?)` — async helper that resolves when state satisfies a predicate (or rejects on timeout).
+  - `collectSnapshots(n)` — records emitted state snapshots for assertions.
+- **Persist middleware improvements**:
+  - Async storage support — `getItem` / `setItem` may now return `Promise`.
+  - Safe rehydration — only hydrates keys that exist in the current state shape.
+  - Version mismatch without `migrate` now skips hydration instead of corrupting state.
+
+### Changed
+
+- `usePick` default equality changed from `Object.is` to `shallowEqual`.
+- Nucleus `set()` now schedules notifications through a batching layer — multiple synchronous calls in the same `batchUpdates` scope fire listeners once.
+
+---
+
+## [1.0.0] — 2026-01-15
+
+### Added
+
+- `createNucleus` — core state container.
+- `signal`, `computed`, `batch`, `effect` — reactive primitives.
+- React hooks: `useNucleus`, `usePick`, `useNuclei`, `useAction`, `useSubscribe`, `useSnapshot`, `useSignal`, `useComputed`, `useLocalSignal`, `useLocalComputed`, `useQuery`, `useMutation`, `useApi`.
+- Middleware: `logger`, `persist`, `immer`, `undo`, `throttle`, `debounce`, `validate`, `sync`.
+- DevTools integration with state history and time-travel.
+- Full TypeScript support.

@@ -3,6 +3,52 @@
  */
 
 /**
+ * Shallow comparison for two values.
+ * Returns true if both are the same reference, or if both are plain objects/arrays
+ * with the same top-level keys and referentially-equal values.
+ *
+ * @example
+ * ```ts
+ * shallowEqual({ a: 1, b: 2 }, { a: 1, b: 2 }); // true
+ * shallowEqual({ a: obj }, { a: obj });            // true  (same ref)
+ * shallowEqual({ a: [1] }, { a: [1] });            // false (different array ref)
+ * ```
+ */
+export function shallowEqual<T>(a: T, b: T): boolean {
+  if (Object.is(a, b)) return true;
+  if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
+    return false;
+  }
+
+  if (Array.isArray(a) && Array.isArray(b)) {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (!Object.is(a[i], b[i])) return false;
+    }
+    return true;
+  }
+
+  if (Array.isArray(a) !== Array.isArray(b)) return false;
+
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
+  if (keysA.length !== keysB.length) return false;
+
+  for (const key of keysA) {
+    if (
+      !Object.prototype.hasOwnProperty.call(b, key) ||
+      !Object.is(
+        (a as Record<string, unknown>)[key],
+        (b as Record<string, unknown>)[key],
+      )
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
  * Deep clone an object
  */
 export function deepClone<T>(obj: T): T {

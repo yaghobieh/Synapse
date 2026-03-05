@@ -1,25 +1,30 @@
 {
   "name": "@forgedevstack/synapse",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "Synapse - Ultra-simple state management for React. No dispatch, no reducers, just signals.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.js"
     },
     "./devtools": {
+      "types": "./dist/devtools/index.d.ts",
       "import": "./dist/devtools/index.mjs",
-      "require": "./dist/devtools/index.js",
-      "types": "./dist/devtools/index.d.ts"
+      "require": "./dist/devtools/index.js"
     },
     "./middleware": {
+      "types": "./dist/middleware/index.d.ts",
       "import": "./dist/middleware/index.mjs",
-      "require": "./dist/middleware/index.js",
-      "types": "./dist/middleware/index.d.ts"
+      "require": "./dist/middleware/index.js"
+    },
+    "./testing": {
+      "types": "./dist/testing.d.ts",
+      "import": "./dist/testing.mjs",
+      "require": "./dist/testing.js"
     }
   },
   "files": [
@@ -28,7 +33,7 @@
     "CHANGELOG.md"
   ],
   "scripts": {
-    "build": "tsup src/index.ts src/devtools/index.ts src/middleware/index.ts --format cjs,esm --dts --clean",
+    "build": "tsup src/index.ts src/devtools/index.ts src/middleware/index.ts src/testing.ts --format cjs,esm --dts --clean",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
     "lint": "eslint src --ext .ts,.tsx",
     "typecheck": "tsc --noEmit",
@@ -56,12 +61,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yaghobieh/Synapse"
+    "url": "https://github.com/yaghobieh/ForgeStack"
   },
   "bugs": {
-    "url": "https://github.com/yaghobieh/Synapse/issues"
+    "url": "https://github.com/yaghobieh/ForgeStack/issues"
   },
-  "homepage": "https://forgedevstack.com/",
+  "homepage": "https://forgestack.dev/synapse",
   "peerDependencies": {
     "react": ">=16.8.0",
     "react-dom": ">=16.8.0"

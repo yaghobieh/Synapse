@@ -10,7 +10,10 @@ import type {
 import { DEFAULT_CONFIG } from '../constants';
 import { NUCLEUS_ERRORS, NUCLEUS_DEFAULTS } from '../constants/nucleus.const';
 import { deepClone, shallowMerge } from '../utils/object';
+import { scheduleNotification } from '../utils/batch';
 import { connectDevTools, setCurrentAction } from '../devtools/connector';
+
+export { batchUpdates } from '../utils/batch';
 
 export function createNucleus<T extends object>(
   initializer: StateInitializer<T>,
@@ -47,12 +50,16 @@ export function createNucleus<T extends object>(
     }
 
     if (state !== prevState) {
-      listeners.forEach(listener => {
-        try {
-          listener(state, prevState);
-        } catch (error) {
-          console.error('Synapse: Error in listener', error);
-        }
+      const currentState = state;
+
+      scheduleNotification(() => {
+        listeners.forEach((listener) => {
+          try {
+            listener(currentState, prevState);
+          } catch (error) {
+            console.error('Synapse: Error in listener', error);
+          }
+        });
       });
 
       if (finalConfig.logging) {

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Synapse DevTools",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "Developer tools for Synapse state management. Inspect, debug, and time-travel through your React application state.",
   "author": "John Yaghobieh",
   "homepage_url": "https://forgestack.dev/synapse",
@@ -11,17 +11,10 @@
     "128": "icons/icon128.png"
   },
   "permissions": [
-    "storage",
-    "activeTab"
+    "activeTab",
+    "scripting"
   ],
   "devtools_page": "devtools.html",
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
-      "run_at": "document_start"
-    }
-  ],
   "background": {
     "service_worker": "background.js"
   },

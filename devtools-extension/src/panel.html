@@ -2,111 +2,72 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Synapse DevTools</title>
   <link rel="stylesheet" href="panel.css">
 </head>
 <body>
-  <div id="synapse-devtools">
-    <header class="header">
-      <div class="logo" id="logo-container"></div>
-      <div class="search-box">
-        <input type="text" id="search-input" placeholder="Search state..." />
-      </div>
-      <div class="toolbar">
-        <button id="snapshot-btn" class="tool-btn" title="Save Snapshot"></button>
-        <button id="export-btn" class="tool-btn" title="Export State"></button>
-        <button id="import-btn" class="tool-btn" title="Import State"></button>
-        <button id="clear-btn" class="tool-btn" title="Clear"></button>
-      </div>
+  <div id="app">
+    <!-- Header -->
+    <header id="header">
+      <div id="logo">Synapse</div>
+      <input type="text" id="search" placeholder="Filter actions..." />
+      <button id="btn-snap" class="hdr-btn" title="Take snapshot">Snap</button>
+      <button id="btn-export" class="hdr-btn" title="Export state">Export</button>
+      <button id="btn-import" class="hdr-btn" title="Import state">Import</button>
+      <button id="btn-clear" class="hdr-btn" title="Clear history">Clear</button>
     </header>
-    
-    <!-- Main Content -->
-    <div class="main-content">
-      <!-- Actions Panel (Left) -->
-      <div class="actions-panel">
-        <div class="panel-header">
-          <span>Actions</span>
-          <span id="action-count" class="badge">0</span>
-        </div>
-        <div id="actions-list" class="actions-list"></div>
-        
-        <!-- Snapshots -->
-        <div class="snapshots-section">
-          <div class="panel-header">Snapshots</div>
-          <div id="snapshots-list" class="snapshots-list"></div>
+
+    <!-- Body -->
+    <div id="body">
+      <!-- Left: Actions -->
+      <div id="left">
+        <div id="left-hd">Actions <span id="act-count">0</span></div>
+        <div id="act-list"></div>
+        <!-- Snapshots drawer -->
+        <div id="snap-section" class="hidden">
+          <div id="snap-hd">Snapshots <span id="snap-count">0</span></div>
+          <div id="snap-list"></div>
         </div>
       </div>
-      
-      <!-- Right Panel -->
-      <div class="right-panel">
-        <!-- Tabs -->
-        <div class="tabs">
-          <button class="tab active" data-tab="diff">Diff</button>
-          <button class="tab" data-tab="state">State</button>
-          <button class="tab" data-tab="action">Action</button>
-          <button class="tab" data-tab="perf">Perf</button>
+
+      <!-- Right: Detail -->
+      <div id="right">
+        <div id="detail-tabs" class="hidden">
+          <button class="dtab active" data-tab="changes">Changes</button>
+          <button class="dtab" data-tab="state">State</button>
+          <button class="dtab" data-tab="raw">Raw</button>
         </div>
-        
-        <!-- Tab Contents -->
-        <div class="tab-contents">
-          <!-- Diff Tab -->
-          <div id="diff-tab" class="tab-content active"></div>
-          
-          <!-- State Tab -->
-          <div id="state-tab" class="tab-content"></div>
-          
-          <!-- Action Tab -->
-          <div id="action-tab" class="tab-content"></div>
-          
-          <!-- Perf Tab -->
-          <div id="perf-tab" class="tab-content"></div>
-        </div>
+        <div id="detail-body"></div>
       </div>
     </div>
-    
-    <!-- Status Bar -->
-    <footer class="status-bar">
-      <span id="status-text">Ready</span>
-      <span id="perf-stats"></span>
-    </footer>
-    
-    <!-- Edit Modal -->
-    <div id="edit-modal" class="modal hidden">
-      <div class="modal-content">
-        <div class="modal-header">
-          <span>Edit Value</span>
-          <button id="close-modal" class="close-btn">×</button>
-        </div>
-        <div class="modal-body">
-          <div id="edit-path" class="edit-path"></div>
-          <textarea id="edit-value"></textarea>
-        </div>
-        <div class="modal-footer">
-          <button id="cancel-edit" class="btn secondary">Cancel</button>
-          <button id="save-edit" class="btn primary">Apply to Page</button>
-        </div>
+
+    <!-- Bottom: API -->
+    <div id="bottom">
+      <div id="bottom-hd">
+        <span>API Calls</span>
+        <span id="api-count">0</span>
       </div>
+      <div id="api-body"></div>
     </div>
-    
+
     <!-- Import Modal -->
     <div id="import-modal" class="modal hidden">
-      <div class="modal-content">
-        <div class="modal-header">
-          <span>Import State</span>
-          <button id="close-import" class="close-btn">×</button>
-        </div>
-        <div class="modal-body">
-          <textarea id="import-value" placeholder="Paste JSON state here..."></textarea>
-        </div>
-        <div class="modal-footer">
-          <button id="cancel-import" class="btn secondary">Cancel</button>
-          <button id="do-import" class="btn primary">Import</button>
-        </div>
+      <div class="modal-box">
+        <div class="modal-hd">Import State <button id="close-import">&times;</button></div>
+        <textarea id="import-text" placeholder="Paste JSON..."></textarea>
+        <div class="modal-ft"><button id="do-import">Import</button></div>
+      </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="modal hidden">
+      <div class="modal-box">
+        <div class="modal-hd">Edit <span id="edit-label"></span> <button id="close-edit">&times;</button></div>
+        <textarea id="edit-text"></textarea>
+        <div class="modal-ft"><button id="do-edit">Apply</button></div>
       </div>
     </div>
   </div>
-  
   <script src="panel.js"></script>
 </body>
 </html>

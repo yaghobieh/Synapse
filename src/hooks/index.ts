@@ -1,10 +1,11 @@
 /**
- * Synapse Hooks - Export all React hooks
+ * Synapse Hooks — Export all React hooks
  */
 
 export {
   useNucleus,
   usePick,
+  useNucleusSlice,
   useNuclei,
   useAction,
   useSubscribe,

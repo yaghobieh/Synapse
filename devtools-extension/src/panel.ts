@@ -1,46 +1,4 @@
-// Constants
-const PANEL_DEFAULTS = {
-  POLL_INTERVAL: 250,
-  PERF_UPDATE_INTERVAL: 1000,
-  MAX_ACTIONS: 200,
-  MAX_SNAPSHOTS: 10,
-  MAX_UPDATE_TIMES: 100,
-  MAX_PERF_BARS: 50,
-};
-
-const MESSAGES = {
-  WAITING: 'Waiting...',
-  NO_STATE: 'No state',
-  SELECT_ACTION: 'Select an action to see what changed',
-  NO_CHANGES: 'No changes detected',
-  INVALID_JSON: 'Invalid JSON',
-  NO_SNAPSHOTS: 'No snapshots yet',
-};
-
-// Icons
-const ICONS = {
-  LOGO: `<svg viewBox="0 0 32 32" fill="none">
-    <circle cx="16" cy="11" r="8" fill="#66d9ef"/>
-    <ellipse cx="12" cy="10" rx="2" ry="2.5" fill="white"/>
-    <ellipse cx="20" cy="10" rx="2" ry="2.5" fill="white"/>
-    <circle cx="12.5" cy="10.5" r="1" fill="#2f3129"/>
-    <circle cx="20.5" cy="10.5" r="1" fill="#2f3129"/>
-    <rect x="10" y="16" width="12" height="8" rx="2" fill="#a6e22e"/>
-    <path d="M6 19c-2 3-2 6 0 8" stroke="#4a9eb8" stroke-width="2" stroke-linecap="round"/>
-    <path d="M9 20c-1 2-1 5 0 7" stroke="#4a9eb8" stroke-width="2" stroke-linecap="round"/>
-    <path d="M26 19c2 3 2 6 0 8" stroke="#4a9eb8" stroke-width="2" stroke-linecap="round"/>
-    <path d="M23 20c1 2 1 5 0 7" stroke="#4a9eb8" stroke-width="2" stroke-linecap="round"/>
-  </svg>`,
-  SNAPSHOT: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="16" height="16" rx="2"/><circle cx="10" cy="10" r="4"/><path d="M2 7h2"/></svg>`,
-  EXPORT: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 12v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="6 8 10 12 14 8"/><line x1="10" y1="12" x2="10" y2="2"/></svg>`,
-  IMPORT: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 12v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="14 6 10 2 6 6"/><line x1="10" y1="2" x2="10" y2="12"/></svg>`,
-  CLEAR: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 5 5 5 17 5"/><path d="M15 5v11a2 2 0 01-2 2H7a2 2 0 01-2-2V5"/><path d="M8 5V3h4v2"/></svg>`,
-  ACTION: `<svg viewBox="0 0 20 20" fill="currentColor"><polygon points="6 4 16 10 6 16"/></svg>`,
-  REWIND: `<svg viewBox="0 0 20 20" fill="currentColor"><polygon points="9 15 2 10 9 5"/><polygon points="17 15 10 10 17 5"/></svg>`,
-  EXPAND: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="5 8 10 13 15 8"/></svg>`,
-  COLLAPSE: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 12 10 7 5 12"/></svg>`,
-  INIT: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7"/><text x="10" y="14" text-anchor="middle" font-size="10" fill="currentColor">@</text></svg>`,
-};
+const CFG = { POLL_MS: 250, MAX_ACTIONS: 300, MAX_PERF: 100, MAX_SNAPS: 20 };
 
 interface ActionEntry {
   id: number;
@@ -54,587 +12,602 @@ interface ActionEntry {
 interface Snapshot {
   id: number;
   name: string;
-  state: Record<string, Record<string, unknown>>;
+  stores: Record<string, Record<string, unknown>>;
   timestamp: number;
 }
 
-// State
+interface ApiCall {
+  id: number;
+  method: string;
+  url: string;
+  status: number | null;
+  requestBody?: unknown;
+  responseBody?: unknown;
+  requestHeaders?: Record<string, string>;
+  responseHeaders?: Record<string, string>;
+  duration: number | null;
+  timestamp: number;
+}
+
 let allStores: Record<string, Record<string, unknown>> = {};
 let actions: ActionEntry[] = [];
 let snapshots: Snapshot[] = [];
-let selectedActionId: number | null = null;
-let currentActionIndex = -1;
+let selectedId: number | null = null;
+let activeTab: 'changes' | 'state' | 'raw' = 'changes';
 let expanded = new Set<string>();
 let searchQuery = '';
 let nextId = 0;
-let snapshotId = 0;
+let snapId = 0;
 let updateCount = 0;
 let updateTimes: number[] = [];
-let lastUpdateTime = Date.now();
-let editingStore = '';
-let editingKey = '';
+let lastUpdate = Date.now();
+let apiCalls: ApiCall[] = [];
+let selectedApiId: number | null = null;
+let editStore = '';
+let editKey = '';
+let changedKeys = new Set<string>();
+let changedStore = '';
 
-// DOM refs
-let actionsListEl: HTMLElement;
-let actionCountEl: HTMLElement;
-let snapshotsListEl: HTMLElement;
-let diffTabEl: HTMLElement;
-let stateTabEl: HTMLElement;
-let actionTabEl: HTMLElement;
-let perfTabEl: HTMLElement;
-let statusTextEl: HTMLElement;
-let perfStatsEl: HTMLElement;
-let searchInputEl: HTMLInputElement;
-let editModalEl: HTMLElement;
-let editPathEl: HTMLElement;
-let editValueEl: HTMLTextAreaElement;
-let importModalEl: HTMLElement;
-let importValueEl: HTMLTextAreaElement;
+let $actList: HTMLElement;
+let $actCount: HTMLElement;
+let $detailTabs: HTMLElement;
+let $detailBody: HTMLElement;
+let $apiBody: HTMLElement;
+let $apiCount: HTMLElement;
+let $search: HTMLInputElement;
+let $snapSection: HTMLElement;
+let $snapList: HTMLElement;
+let $snapCount: HTMLElement;
 
 function init(): void {
-  actionsListEl = document.getElementById('actions-list')!;
-  actionCountEl = document.getElementById('action-count')!;
-  snapshotsListEl = document.getElementById('snapshots-list')!;
-  diffTabEl = document.getElementById('diff-tab')!;
-  stateTabEl = document.getElementById('state-tab')!;
-  actionTabEl = document.getElementById('action-tab')!;
-  perfTabEl = document.getElementById('perf-tab')!;
-  statusTextEl = document.getElementById('status-text')!;
-  perfStatsEl = document.getElementById('perf-stats')!;
-  searchInputEl = document.getElementById('search-input') as HTMLInputElement;
-  editModalEl = document.getElementById('edit-modal')!;
-  editPathEl = document.getElementById('edit-path')!;
-  editValueEl = document.getElementById('edit-value') as HTMLTextAreaElement;
-  importModalEl = document.getElementById('import-modal')!;
-  importValueEl = document.getElementById('import-value') as HTMLTextAreaElement;
-
-  const logoEl = document.getElementById('logo-container');
-  if (logoEl) {
-    logoEl.innerHTML = `<span class="logo-icon">${ICONS.LOGO}</span><span class="logo-text">Synapse</span>`;
+  // Register this panel with the background and link to the inspected tab (activeTab flow)
+  const params = new URLSearchParams(window.location.search);
+  const tabIdParam = params.get('tabId');
+  if (tabIdParam) {
+    const tabId = parseInt(tabIdParam, 10);
+    if (!isNaN(tabId)) {
+      try {
+        const port = (chrome as any).runtime.connect({ name: 'synapse-devtools' });
+        port.postMessage({ type: 'SET_TAB_ID', tabId });
+      } catch (_e) {
+        // Extension context invalidated or not available
+      }
+    }
   }
 
-  const snapshotBtn = document.getElementById('snapshot-btn');
-  const exportBtn = document.getElementById('export-btn');
-  const importBtn = document.getElementById('import-btn');
-  const clearBtn = document.getElementById('clear-btn');
+  $actList     = el('act-list');
+  $actCount    = el('act-count');
+  $detailTabs  = el('detail-tabs');
+  $detailBody  = el('detail-body');
+  $apiBody     = el('api-body');
+  $apiCount    = el('api-count');
+  $search      = el('search') as HTMLInputElement;
+  $snapSection = el('snap-section');
+  $snapList    = el('snap-list');
+  $snapCount   = el('snap-count');
 
-  if (snapshotBtn) snapshotBtn.innerHTML = ICONS.SNAPSHOT;
-  if (exportBtn) exportBtn.innerHTML = ICONS.EXPORT;
-  if (importBtn) importBtn.innerHTML = ICONS.IMPORT;
-  if (clearBtn) clearBtn.innerHTML = ICONS.CLEAR;
-
-  document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', () => switchTab((tab as HTMLElement).dataset.tab!));
+  $search?.addEventListener('input', () => {
+    searchQuery = $search.value.toLowerCase();
+    renderActions();
   });
 
-  searchInputEl?.addEventListener('input', () => {
-    searchQuery = searchInputEl.value.toLowerCase();
-    renderState();
+  $detailTabs?.querySelectorAll('.dtab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeTab = (btn as HTMLElement).dataset.tab as typeof activeTab;
+      $detailTabs.querySelectorAll('.dtab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderDetail();
+    });
   });
 
-  snapshotBtn?.addEventListener('click', saveSnapshot);
-  exportBtn?.addEventListener('click', exportState);
-  importBtn?.addEventListener('click', () => importModalEl?.classList.remove('hidden'));
-  clearBtn?.addEventListener('click', clearAll);
+  el('btn-snap')?.addEventListener('click', takeSnapshot);
+  el('btn-export')?.addEventListener('click', exportState);
+  el('btn-import')?.addEventListener('click', () => el('import-modal')?.classList.remove('hidden'));
+  el('btn-clear')?.addEventListener('click', clearAll);
 
-  document.getElementById('close-modal')?.addEventListener('click', closeEditModal);
-  document.getElementById('cancel-edit')?.addEventListener('click', closeEditModal);
-  document.getElementById('save-edit')?.addEventListener('click', saveEdit);
-  document.getElementById('close-import')?.addEventListener('click', () => importModalEl?.classList.add('hidden'));
-  document.getElementById('cancel-import')?.addEventListener('click', () => importModalEl?.classList.add('hidden'));
-  document.getElementById('do-import')?.addEventListener('click', doImport);
+  el('close-import')?.addEventListener('click', () => el('import-modal')?.classList.add('hidden'));
+  el('do-import')?.addEventListener('click', doImport);
+  el('close-edit')?.addEventListener('click', () => el('edit-modal')?.classList.add('hidden'));
+  el('do-edit')?.addEventListener('click', saveEdit);
+
+  el('bottom-hd')?.addEventListener('click', () => {
+    const b = el('api-body');
+    if (b) b.style.display = b.style.display === 'none' ? '' : 'none';
+  });
 
   poll();
-  setInterval(poll, PANEL_DEFAULTS.POLL_INTERVAL);
-  setInterval(updatePerfStats, PANEL_DEFAULTS.PERF_UPDATE_INTERVAL);
+  setInterval(poll, CFG.POLL_MS);
 }
 
 function poll(): void {
   try {
-    (chrome as any).devtools.inspectedWindow.eval(
-      'window.__SYNAPSE_DEVTOOLS__',
-      (result: any, error: any) => {
-        if (error || !result?.nuclei) return;
+    const code = `(function(){
+      var d = window.__SYNAPSE_DEVTOOLS__;
+      var a = window.__SYNAPSE_API_CALLS__;
+      return JSON.stringify({d:d,a:a||[]});
+    })()`;
 
-        Object.entries(result.nuclei).forEach(([_id, nucleus]: [string, any]) => {
-          const name = nucleus.name;
+    (chrome as any).devtools.inspectedWindow.eval(
+      code,
+      (raw: string | null, err: unknown) => {
+        if (err || !raw) return;
+        let result: { d?: any; a?: ApiCall[] };
+        try { result = JSON.parse(raw); } catch { return; }
+
+        const devtools = result.d;
+        if (!devtools?.nuclei) return;
+
+        Object.entries(devtools.nuclei).forEach(([_id, nucleus]: [string, any]) => {
+          const name: string = nucleus.name;
+          if (name === '__signals__') return;
           const state = cleanState(nucleus.state || {});
           const prev = allStores[name];
 
           if (prev && JSON.stringify(prev) !== JSON.stringify(state)) {
-            const lastHist = nucleus.history?.[nucleus.history.length - 1];
-
+            const lastH = nucleus.history?.[nucleus.history.length - 1];
             actions.unshift({
               id: ++nextId,
               store: name,
-              action: lastHist?.action || 'SET',
+              action: lastH?.action || 'SET',
               state: JSON.parse(JSON.stringify(state)),
               prevState: JSON.parse(JSON.stringify(prev)),
               timestamp: Date.now(),
             });
-
             updateCount++;
-            updateTimes.push(Date.now() - lastUpdateTime);
-            lastUpdateTime = Date.now();
-            if (updateTimes.length > PANEL_DEFAULTS.MAX_UPDATE_TIMES) updateTimes.shift();
-            if (actions.length > PANEL_DEFAULTS.MAX_ACTIONS) actions.pop();
-            currentActionIndex = 0;
+            updateTimes.push(Date.now() - lastUpdate);
+            lastUpdate = Date.now();
+            if (updateTimes.length > CFG.MAX_PERF) updateTimes.shift();
+            if (actions.length > CFG.MAX_ACTIONS) actions.pop();
           }
 
           allStores[name] = state;
         });
 
+        if (result.a && Array.isArray(result.a)) {
+          apiCalls = result.a;
+        }
+
         render();
-      }
+      },
     );
-  } catch (e) {
-    console.error('Synapse DevTools poll error:', e);
-  }
+  } catch { /* context gone */ }
 }
 
 function cleanState(obj: unknown): Record<string, unknown> {
   if (!obj || typeof obj !== 'object') return {};
-  const result: Record<string, unknown> = {};
-
-  for (const [key, val] of Object.entries(obj)) {
-    if (typeof val === 'function') continue;
-    if (typeof val === 'string' && val.includes('[Function')) continue;
-
-    if (Array.isArray(val)) {
-      result[key] = val.filter(v => typeof v !== 'function');
-    } else if (val && typeof val === 'object') {
-      result[key] = cleanState(val);
-    } else {
-      result[key] = val;
-    }
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (typeof v === 'function') continue;
+    if (typeof v === 'string' && v.includes('[Function')) continue;
+    if (Array.isArray(v)) out[k] = v.filter(x => typeof x !== 'function');
+    else if (v && typeof v === 'object') out[k] = cleanState(v);
+    else out[k] = v;
   }
-  return result;
+  return out;
 }
 
 function render(): void {
   renderActions();
-  renderDiff();
-  renderState();
-  renderAction();
-  renderPerf();
+  renderDetail();
+  renderApi();
   renderSnapshots();
-  updateStatus();
 }
 
+// ---- Actions ----
 function renderActions(): void {
-  if (!actionsListEl || !actionCountEl) return;
+  if (!$actList || !$actCount) return;
+  const list = filtered();
+  $actCount.textContent = String(list.length);
 
-  actionCountEl.textContent = String(actions.length);
-  const storeNames = Object.keys(allStores);
-
-  if (storeNames.length === 0) {
-    actionsListEl.innerHTML = `<div class="empty"><div class="empty-icon">${ICONS.LOGO}</div>${MESSAGES.WAITING}</div>`;
+  if (!Object.keys(allStores).length) {
+    $actList.innerHTML = '<div class="empty">Waiting for Synapse...</div>';
     return;
   }
 
   let html = '';
-
-  actions.forEach((a, idx) => {
-    const isCurrent = idx === currentActionIndex;
-    const isSelected = a.id === selectedActionId;
-    const time = new Date(a.timestamp).toLocaleTimeString();
-
-    html += `<div class="action-item ${isSelected ? 'selected' : ''} ${isCurrent ? 'current' : ''}" data-id="${a.id}" data-idx="${idx}">
-      <span class="action-type set">${ICONS.ACTION}</span>
-      <span class="action-name">${a.action}</span>
-      <span class="action-store">${a.store}</span>
-      <span class="action-time">${time}</span>
-      <span class="action-jump" data-jump="${idx}" title="Jump">${ICONS.REWIND}</span>
+  list.forEach(a => {
+    const sel = a.id === selectedId ? ' sel' : '';
+    html += `<div class="act${sel}" data-id="${a.id}">
+      <span class="dot set"></span>
+      <span class="act-name">${esc(a.action)}</span>
+      <span class="act-store">${esc(a.store)}</span>
+      <span class="act-time">${fmtTime(a.timestamp)}</span>
     </div>`;
   });
 
-  storeNames.forEach(name => {
-    html += `<div class="action-item" data-init="${name}">
-      <span class="action-type init">${ICONS.INIT}</span>
-      <span class="action-name">INIT</span>
-      <span class="action-store">${name}</span>
+  Object.keys(allStores).forEach(name => {
+    html += `<div class="act" data-init="1">
+      <span class="dot init"></span>
+      <span class="act-name">INIT</span>
+      <span class="act-store">${esc(name)}</span>
     </div>`;
   });
 
-  actionsListEl.innerHTML = html;
+  $actList.innerHTML = html;
 
-  actionsListEl.querySelectorAll('.action-item[data-id]').forEach(el => {
-    el.addEventListener('click', (e) => {
-      if ((e.target as HTMLElement).classList.contains('action-jump')) return;
-      const id = parseInt((el as HTMLElement).dataset.id!, 10);
-      selectedActionId = id;
-      render();
-    });
-  });
-
-  actionsListEl.querySelectorAll('.action-jump').forEach(el => {
-    el.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const idx = parseInt((el as HTMLElement).dataset.jump!, 10);
-      timeTravel(idx);
+  $actList.querySelectorAll('.act[data-id]').forEach(row => {
+    row.addEventListener('click', () => {
+      const id = parseInt((row as HTMLElement).dataset.id!, 10);
+      selectedId = id;
+      computeChanged();
+      $detailTabs?.classList.remove('hidden');
+      renderDetail();
+      renderActions();
     });
   });
 }
 
-function renderDiff(): void {
-  if (!diffTabEl) return;
+function filtered(): ActionEntry[] {
+  let list = actions;
+  if (searchQuery) {
+    list = list.filter(a =>
+      a.action.toLowerCase().includes(searchQuery) ||
+      a.store.toLowerCase().includes(searchQuery),
+    );
+  }
+  return list;
+}
 
-  const action = actions.find(a => a.id === selectedActionId);
+function computeChanged(): void {
+  changedKeys.clear();
+  changedStore = '';
+  const act = actions.find(a => a.id === selectedId);
+  if (!act) return;
+  changedStore = act.store;
+  const allK = new Set([...Object.keys(act.prevState), ...Object.keys(act.state)]);
+  allK.forEach(key => {
+    if (JSON.stringify(act.prevState[key]) !== JSON.stringify(act.state[key])) {
+      changedKeys.add(key);
+    }
+  });
+}
 
-  if (!action) {
-    diffTabEl.innerHTML = `<div class="empty">${MESSAGES.SELECT_ACTION}</div>`;
+// ---- Detail ----
+function renderDetail(): void {
+  if (!$detailBody) return;
+
+  const hasStores = Object.keys(allStores).length > 0;
+  const act = actions.find(a => a.id === selectedId);
+
+  // Always show tabs if we have stores (State tab works without action)
+  if (hasStores) {
+    $detailTabs?.classList.remove('hidden');
+  } else {
+    $detailTabs?.classList.add('hidden');
+    $detailBody.innerHTML = '<div class="empty">Waiting for Synapse stores...</div>';
     return;
   }
 
-  const { action: actionName, store, prevState, state, timestamp } = action;
-  const time = new Date(timestamp).toLocaleString();
-  const actionIdx = actions.findIndex(a => a.id === selectedActionId);
+  if (activeTab === 'state') {
+    renderStateTree();
+    return;
+  }
 
-  let html = `
-    <div class="diff-header">
-      <div class="diff-action-name">${actionName}</div>
-      <div class="diff-meta">
-        <div>Store: <span>${store}</span></div>
-        <div>Time: <span>${time}</span></div>
-      </div>
-      <div class="diff-buttons">
-        <button class="diff-btn jump" data-jump="${actionIdx}">${ICONS.REWIND} Jump</button>
-      </div>
-    </div>
-    <div class="changes-section">
-      <div class="changes-title">Changes</div>
-  `;
+  if (!act) {
+    $detailBody.innerHTML = '<div class="empty">Click an action to see changes and raw payload.<br>Switch to State tab to browse all stores.</div>';
+    return;
+  }
 
-  const allKeys = new Set([...Object.keys(prevState), ...Object.keys(state)]);
-  let hasChanges = false;
+  if (activeTab === 'changes') renderChanges(act);
+  else renderRaw(act);
+}
 
-  allKeys.forEach(key => {
-    const before = prevState[key];
-    const after = state[key];
+function renderChanges(act: ActionEntry): void {
+  let html = '';
+  const allK = new Set([...Object.keys(act.prevState), ...Object.keys(act.state)]);
+  let count = 0;
 
+  allK.forEach(key => {
+    const before = act.prevState[key];
+    const after = act.state[key];
     if (JSON.stringify(before) !== JSON.stringify(after)) {
-      hasChanges = true;
-      html += `
-        <div class="change-item">
-          <div class="change-key">${key}</div>
-          <div class="change-values">
-            <div class="change-row before"><span class="change-sign">−</span><span class="change-value">${formatJson(before)}</span></div>
-            <div class="change-row after"><span class="change-sign">+</span><span class="change-value">${formatJson(after)}</span></div>
-          </div>
-        </div>
-      `;
+      count++;
+      html += `<div class="diff-block">
+        <div class="diff-key">${esc(key)}</div>
+        <div class="diff-line rm">\u2212 ${fmtJson(before)}</div>
+        <div class="diff-line add">+ ${fmtJson(after)}</div>
+      </div>`;
     }
   });
 
-  if (!hasChanges) {
-    html += `<div class="empty">${MESSAGES.NO_CHANGES}</div>`;
-  }
+  if (!count) html = '<div class="empty">No state changes detected</div>';
 
-  html += '</div>';
-  diffTabEl.innerHTML = html;
+  const avg = updateTimes.length
+    ? (updateTimes.reduce((a, b) => a + b, 0) / updateTimes.length).toFixed(0) : '0';
+  const storeCount = Object.keys(allStores).length;
+  const size = fmtSize(JSON.stringify(allStores).length);
 
-  diffTabEl.querySelectorAll('.diff-btn.jump').forEach(el => {
-    el.addEventListener('click', () => {
-      const idx = parseInt((el as HTMLElement).dataset.jump!, 10);
-      timeTravel(idx);
-    });
-  });
+  html += `<div class="perf-row">
+    <div class="perf-card"><div class="perf-val">${updateCount}</div><div class="perf-lbl">Updates</div></div>
+    <div class="perf-card"><div class="perf-val">${avg}ms</div><div class="perf-lbl">Avg</div></div>
+    <div class="perf-card"><div class="perf-val">${storeCount}</div><div class="perf-lbl">Nuclei</div></div>
+    <div class="perf-card"><div class="perf-val">${size}</div><div class="perf-lbl">Size</div></div>
+  </div>`;
+
+  $detailBody.innerHTML = html;
 }
 
-function renderState(): void {
-  if (!stateTabEl) return;
+function renderStateTree(): void {
+  let html = '<div class="tree">';
 
-  const storeNames = Object.keys(allStores);
+  for (const [storeName, storeState] of Object.entries(allStores)) {
+    const isExp = expanded.has(storeName);
+    const keyCount = Object.keys(storeState).length;
+    const isActionStore = storeName === changedStore;
 
-  if (storeNames.length === 0) {
-    stateTabEl.innerHTML = `<div class="empty">${MESSAGES.NO_STATE}</div>`;
-    return;
-  }
-
-  let html = '';
-  storeNames.forEach(storeName => {
-    html += renderTree(storeName, allStores[storeName], storeName);
-  });
-
-  stateTabEl.innerHTML = html;
-  attachTreeEvents();
-}
-
-function renderTree(key: string, value: unknown, path: string, depth = 0): string {
-  const isObj = value !== null && typeof value === 'object';
-  const isExp = expanded.has(path);
-  const indent = depth * 16;
-
-  if (searchQuery && !matchesSearch(key, value)) return '';
-
-  let html = `<div class="tree-node" style="padding-left:${indent}px">`;
-
-  if (isObj) {
-    const count = Array.isArray(value) ? value.length : Object.keys(value as object).length;
-    const bracket = Array.isArray(value) ? `[${count}]` : `{${count}}`;
-
-    html += `<div class="tree-row" data-path="${path}">
-      <span class="tree-toggle">${isExp ? ICONS.EXPAND : ICONS.COLLAPSE}</span>
-      <span class="tree-key">${key}</span>
-      <span class="tree-colon">:</span>
-      <span class="tree-bracket">${bracket}</span>
+    html += `<div class="t-row t-store" data-path="${storeName}">
+      <span class="t-arrow">${isExp ? '\u25BC' : '\u25B6'}</span>
+      <span class="t-key" style="font-weight:700">${esc(storeName)}</span>
+      <span class="t-colon">:</span>
+      <span class="t-bracket">{${keyCount}}</span>
     </div>`;
 
     if (isExp) {
-      html += '<div class="tree-children">';
-      const entries = Array.isArray(value)
-        ? value.map((v, i) => [String(i), v] as [string, unknown])
-        : Object.entries(value as object);
-
-      entries.forEach(([k, v]) => {
-        html += renderTree(k, v, `${path}.${k}`, depth + 1);
-      });
-      html += '</div>';
+      for (const [k, v] of Object.entries(storeState)) {
+        const hl = isActionStore && changedKeys.has(k);
+        html += renderTree(k, v, `${storeName}.${k}`, 1, storeName, hl);
+      }
     }
-  } else {
-    const [store, ...rest] = path.split('.');
-    const keyPath = rest.join('.');
-
-    html += `<div class="tree-row editable" data-path="${path}" data-store="${store}" data-key="${keyPath}">
-      <span class="tree-toggle"></span>
-      <span class="tree-key">${key}</span>
-      <span class="tree-colon">:</span>
-      ${renderValue(value)}
-    </div>`;
   }
 
   html += '</div>';
+  $detailBody.innerHTML = html;
+  attachTreeClicks();
+}
+
+function renderTree(key: string, value: unknown, path: string, depth: number, store: string, highlight: boolean): string {
+  const isObj = value !== null && typeof value === 'object';
+  const isExp = expanded.has(path);
+  const pad = depth * 14;
+  const hl = highlight ? ' changed' : '';
+
+  let html = '';
+  if (isObj) {
+    const count = Array.isArray(value) ? value.length : Object.keys(value as object).length;
+    const bracket = Array.isArray(value) ? `[${count}]` : `{${count}}`;
+    html += `<div class="t-row${hl}" style="padding-left:${pad}px" data-path="${path}">
+      <span class="t-arrow">${isExp ? '\u25BC' : '\u25B6'}</span>
+      <span class="t-key">${esc(key)}</span><span class="t-colon">:</span>
+      <span class="t-bracket">${bracket}</span>
+    </div>`;
+    if (isExp) {
+      const entries = Array.isArray(value)
+        ? value.map((v, i) => [String(i), v] as [string, unknown])
+        : Object.entries(value as object);
+      entries.forEach(([k, v]) => {
+        html += renderTree(k, v, `${path}.${k}`, depth + 1, store, highlight);
+      });
+    }
+  } else {
+    const keyPath = path.split('.').slice(1).join('.');
+    html += `<div class="t-row editable${hl}" style="padding-left:${pad}px" data-path="${path}" data-store="${store}" data-key="${keyPath}">
+      <span class="t-arrow"></span>
+      <span class="t-key">${esc(key)}</span><span class="t-colon">:</span>
+      ${renderVal(value)}
+    </div>`;
+  }
   return html;
 }
 
-function matchesSearch(key: string, value: unknown): boolean {
-  if (key.toLowerCase().includes(searchQuery)) return true;
-  if (typeof value === 'string' && value.toLowerCase().includes(searchQuery)) return true;
-  if (typeof value === 'object' && value !== null) {
-    return Object.entries(value).some(([k, v]) => matchesSearch(k, v));
-  }
-  return false;
+function renderVal(value: unknown): string {
+  if (value === null) return '<span class="t-nil">null</span>';
+  if (value === undefined) return '<span class="t-nil">undefined</span>';
+  if (typeof value === 'string') return `<span class="t-str">"${esc(value)}"</span>`;
+  if (typeof value === 'number') return `<span class="t-num">${value}</span>`;
+  if (typeof value === 'boolean') return `<span class="t-bool">${value}</span>`;
+  return esc(String(value));
 }
 
-function renderValue(value: unknown): string {
-  if (value === null) return '<span class="tree-null">null</span>';
-  if (value === undefined) return '<span class="tree-null">undefined</span>';
-  if (typeof value === 'string') return `<span class="tree-string">"${escapeHtml(value)}"</span>`;
-  if (typeof value === 'number') return `<span class="tree-number">${value}</span>`;
-  if (typeof value === 'boolean') return `<span class="tree-boolean">${value}</span>`;
-  return String(value);
-}
+function attachTreeClicks(): void {
+  $detailBody?.querySelectorAll('.t-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const r = row as HTMLElement;
+      const path = r.dataset.path!;
 
-function attachTreeEvents(): void {
-  stateTabEl?.querySelectorAll('.tree-row').forEach(el => {
-    el.addEventListener('click', () => {
-      const path = (el as HTMLElement).dataset.path!;
-
-      if (el.classList.contains('editable')) {
-        openEditModal((el as HTMLElement).dataset.store!, (el as HTMLElement).dataset.key!);
+      if (r.classList.contains('editable')) {
+        openEdit(r.dataset.store!, r.dataset.key!);
         return;
       }
 
       if (expanded.has(path)) expanded.delete(path);
       else expanded.add(path);
-      renderState();
+      renderStateTree();
     });
   });
 }
 
-function renderAction(): void {
-  if (!actionTabEl) return;
+function renderRaw(act: ActionEntry): void {
+  const payload = {
+    action: act.action,
+    store: act.store,
+    timestamp: new Date(act.timestamp).toISOString(),
+    prevState: act.prevState,
+    state: act.state,
+  };
+  $detailBody.innerHTML = `<pre class="raw-pre">${esc(JSON.stringify(payload, null, 2))}</pre>`;
+}
 
-  const action = actions.find(a => a.id === selectedActionId);
+// ---- API ----
+function renderApi(): void {
+  if (!$apiBody || !$apiCount) return;
+  $apiCount.textContent = String(apiCalls.length);
 
-  if (!action) {
-    actionTabEl.innerHTML = `<div class="empty">${MESSAGES.SELECT_ACTION}</div>`;
+  if (!apiCalls.length) {
+    $apiBody.innerHTML = `<div class="empty" style="padding:8px">No API calls tracked.<br>
+      Call <code>initApiTracking()</code> in your app,<br>then make fetch requests.</div>`;
     return;
   }
 
-  actionTabEl.innerHTML = `
-    <h3 style="color:var(--accent);margin-bottom:16px">Action Payload</h3>
-    <pre style="background:var(--bg-dark);padding:12px;border-radius:6px;overflow:auto">${formatJson(action)}</pre>
-  `;
-}
+  let html = '';
+  apiCalls.slice(0, 60).forEach(c => {
+    const stCls = c.status === null ? 'pen' : (c.status >= 200 && c.status < 400 ? 'ok' : 'err');
+    const dur = c.duration !== null ? `${c.duration}ms` : '...';
+    const sel = c.id === selectedApiId ? ' sel' : '';
 
-function renderPerf(): void {
-  if (!perfTabEl) return;
+    html += `<div class="api-row${sel}" data-api="${c.id}">
+      <span class="method ${c.method}">${esc(c.method)}</span>
+      <span class="api-url">${esc(c.url)}</span>
+      <span class="api-st ${stCls}">${c.status ?? '...'}</span>
+      <span class="api-dur">${dur}</span>
+    </div>`;
 
-  const avgTime = updateTimes.length > 0
-    ? (updateTimes.reduce((a, b) => a + b, 0) / updateTimes.length).toFixed(0)
-    : '0';
+    if (c.id === selectedApiId) {
+      html += renderApiDetail(c);
+    }
+  });
 
-  const storeCount = Object.keys(allStores).length;
-  const stateSize = JSON.stringify(allStores).length;
-  const recentTimes = updateTimes.slice(-PANEL_DEFAULTS.MAX_PERF_BARS);
-  const maxTime = Math.max(...recentTimes, 100);
+  $apiBody.innerHTML = html;
 
-  const barsHtml = recentTimes.map(t =>
-    `<div class="perf-bar" style="height:${Math.max(4, (t / maxTime) * 100)}%"></div>`
-  ).join('');
-
-  perfTabEl.innerHTML = `
-    <div class="perf-grid">
-      <div class="perf-card"><div class="perf-value">${updateCount}</div><div class="perf-label">Total Updates</div></div>
-      <div class="perf-card"><div class="perf-value">${avgTime}ms</div><div class="perf-label">Avg Time</div></div>
-      <div class="perf-card"><div class="perf-value">${storeCount}</div><div class="perf-label">Stores</div></div>
-      <div class="perf-card"><div class="perf-value">${formatSize(stateSize)}</div><div class="perf-label">State Size</div></div>
-    </div>
-    <div class="perf-chart">
-      <div class="perf-chart-title">Update Frequency</div>
-      <div class="perf-bars">${barsHtml || '<div class="empty">No updates yet</div>'}</div>
-    </div>
-  `;
-}
-
-function renderSnapshots(): void {
-  if (!snapshotsListEl) return;
-
-  if (snapshots.length === 0) {
-    snapshotsListEl.innerHTML = `<div style="padding:8px;color:var(--text-dim);font-size:10px">${MESSAGES.NO_SNAPSHOTS}</div>`;
-    return;
-  }
-
-  snapshotsListEl.innerHTML = snapshots.map(s => `
-    <div class="snapshot-item" data-id="${s.id}">
-      <span class="snapshot-name">${s.name}</span>
-      <span class="snapshot-time">${new Date(s.timestamp).toLocaleTimeString()}</span>
-    </div>
-  `).join('');
-
-  snapshotsListEl.querySelectorAll('.snapshot-item').forEach(el => {
-    el.addEventListener('click', () => {
-      const id = parseInt((el as HTMLElement).dataset.id!, 10);
-      restoreSnapshot(id);
+  $apiBody.querySelectorAll('.api-row[data-api]').forEach(row => {
+    row.addEventListener('click', () => {
+      const id = parseInt((row as HTMLElement).dataset.api!, 10);
+      selectedApiId = selectedApiId === id ? null : id;
+      renderApi();
     });
   });
 }
 
-function timeTravel(actionIdx: number): void {
-  if (actionIdx < 0 || actionIdx >= actions.length) return;
+function renderApiDetail(c: ApiCall): string {
+  const reqH = c.requestHeaders && Object.keys(c.requestHeaders).length ? prettyJson(c.requestHeaders) : null;
+  const resH = c.responseHeaders && Object.keys(c.responseHeaders).length ? prettyJson(c.responseHeaders) : null;
 
-  const action = actions[actionIdx];
-  const { store, state } = action;
-
-  const code = `window.postMessage({type:'SYNAPSE_DEVTOOLS_UPDATE',nucleusName:'${store}',path:'',value:${JSON.stringify(state)}},'*');`;
-  (chrome as any).devtools.inspectedWindow.eval(code);
-
-  currentActionIndex = actionIdx;
-  allStores[store] = state;
-  render();
+  return `<div class="api-detail">
+    <div><span class="lbl">Status</span> ${c.status ?? 'pending'}</div>
+    <div><span class="lbl">Duration</span> ${c.duration !== null ? c.duration + 'ms' : 'pending'}</div>
+    <div><span class="lbl">Time</span> ${new Date(c.timestamp).toLocaleTimeString()}</div>
+    ${reqH ? `<div><span class="lbl">Req Hdrs</span></div><pre>${esc(reqH)}</pre>` : ''}
+    ${c.requestBody ? `<div><span class="lbl">Req Body</span></div><pre>${esc(prettyJson(c.requestBody))}</pre>` : ''}
+    ${resH ? `<div><span class="lbl">Res Hdrs</span></div><pre>${esc(resH)}</pre>` : ''}
+    ${c.responseBody ? `<div><span class="lbl">Res Body</span></div><pre>${esc(prettyJson(c.responseBody))}</pre>` : ''}
+  </div>`;
 }
 
-function saveSnapshot(): void {
-  const name = `Snapshot ${++snapshotId}`;
-  snapshots.unshift({ id: snapshotId, name, state: JSON.parse(JSON.stringify(allStores)), timestamp: Date.now() });
-  if (snapshots.length > PANEL_DEFAULTS.MAX_SNAPSHOTS) snapshots.pop();
+// ---- Snapshots ----
+function takeSnapshot(): void {
+  snapshots.unshift({
+    id: ++snapId,
+    name: `Snap ${snapId}`,
+    stores: JSON.parse(JSON.stringify(allStores)),
+    timestamp: Date.now(),
+  });
+  if (snapshots.length > CFG.MAX_SNAPS) snapshots.pop();
   renderSnapshots();
 }
 
-function restoreSnapshot(id: number): void {
-  const snapshot = snapshots.find(s => s.id === id);
-  if (!snapshot) return;
+function renderSnapshots(): void {
+  if (!$snapSection || !$snapList || !$snapCount) return;
 
-  Object.entries(snapshot.state).forEach(([store, state]) => {
-    const code = `window.postMessage({type:'SYNAPSE_DEVTOOLS_UPDATE',nucleusName:'${store}',path:'',value:${JSON.stringify(state)}},'*');`;
-    (chrome as any).devtools.inspectedWindow.eval(code);
+  if (!snapshots.length) {
+    $snapSection.classList.add('hidden');
+    return;
+  }
+
+  $snapSection.classList.remove('hidden');
+  $snapCount.textContent = String(snapshots.length);
+
+  $snapList.innerHTML = snapshots.map(s =>
+    `<div class="snap-row" data-snap="${s.id}">
+      <span class="snap-name">${esc(s.name)}</span>
+      <span class="snap-time">${fmtTime(s.timestamp)}</span>
+      <button class="snap-restore" data-snap-restore="${s.id}">Restore</button>
+    </div>`,
+  ).join('');
+
+  $snapList.querySelectorAll('.snap-restore').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      restoreSnapshot(parseInt((btn as HTMLElement).dataset.snapRestore!, 10));
+    });
+  });
+}
+
+function restoreSnapshot(id: number): void {
+  const snap = snapshots.find(s => s.id === id);
+  if (!snap) return;
+  Object.entries(snap.stores).forEach(([store, state]) => {
+    (chrome as any).devtools.inspectedWindow.eval(
+      `window.postMessage({type:'SYNAPSE_DEVTOOLS_UPDATE',nucleusName:'${store}',path:'',value:${JSON.stringify(state)}},'*');`,
+    );
     allStores[store] = state as Record<string, unknown>;
   });
-
   render();
 }
 
+// ---- Edit ----
+function openEdit(store: string, key: string): void {
+  editStore = store;
+  editKey = key;
+  const value = getPath(allStores[store], key);
+  const $label = el('edit-label');
+  const $text = el('edit-text') as HTMLTextAreaElement;
+  if ($label) $label.textContent = `${store}.${key}`;
+  if ($text) $text.value = JSON.stringify(value, null, 2);
+  el('edit-modal')?.classList.remove('hidden');
+}
+
+function saveEdit(): void {
+  if (!editStore) return;
+  try {
+    const $text = el('edit-text') as HTMLTextAreaElement;
+    const v = JSON.parse($text.value);
+    (chrome as any).devtools.inspectedWindow.eval(
+      `window.postMessage({type:'SYNAPSE_DEVTOOLS_UPDATE',nucleusName:'${editStore}',path:'${editKey}',value:${JSON.stringify(v)}},'*');`,
+    );
+    setPath(allStores[editStore], editKey, v);
+    el('edit-modal')?.classList.add('hidden');
+    render();
+  } catch { alert('Invalid JSON'); }
+}
+
+// ---- Export / Import / Clear ----
 function exportState(): void {
-  const data = JSON.stringify({ stores: allStores, actions }, null, 2);
+  const data = JSON.stringify({ stores: allStores, actions, snapshots }, null, 2);
   const blob = new Blob([data], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `synapse-state-${Date.now()}.json`;
+  a.download = `synapse-${Date.now()}.json`;
   a.click();
 }
 
 function doImport(): void {
+  const $text = el('import-text') as HTMLTextAreaElement;
   try {
-    const data = JSON.parse(importValueEl.value);
+    const data = JSON.parse($text.value);
     if (data.stores) {
       Object.entries(data.stores).forEach(([store, state]) => {
-        const code = `window.postMessage({type:'SYNAPSE_DEVTOOLS_UPDATE',nucleusName:'${store}',path:'',value:${JSON.stringify(state)}},'*');`;
-        (chrome as any).devtools.inspectedWindow.eval(code);
+        (chrome as any).devtools.inspectedWindow.eval(
+          `window.postMessage({type:'SYNAPSE_DEVTOOLS_UPDATE',nucleusName:'${store}',path:'',value:${JSON.stringify(state)}},'*');`,
+        );
         allStores[store] = state as Record<string, unknown>;
       });
     }
-    importModalEl?.classList.add('hidden');
-    importValueEl.value = '';
+    if (data.snapshots) snapshots = data.snapshots;
+    el('import-modal')?.classList.add('hidden');
+    $text.value = '';
     render();
-  } catch (_e) {
-    alert(MESSAGES.INVALID_JSON);
-  }
-}
-
-function openEditModal(store: string, key: string): void {
-  editingStore = store;
-  editingKey = key;
-  const value = getNestedValue(allStores[store], key);
-  if (editPathEl) editPathEl.textContent = `${store}.${key}`;
-  if (editValueEl) editValueEl.value = JSON.stringify(value, null, 2);
-  editModalEl?.classList.remove('hidden');
-}
-
-function closeEditModal(): void {
-  editModalEl?.classList.add('hidden');
-}
-
-function saveEdit(): void {
-  if (!editingStore) return;
-  try {
-    const newValue = JSON.parse(editValueEl.value);
-    const code = `window.postMessage({type:'SYNAPSE_DEVTOOLS_UPDATE',nucleusName:'${editingStore}',path:'${editingKey}',value:${JSON.stringify(newValue)}},'*');`;
-    (chrome as any).devtools.inspectedWindow.eval(code);
-    setNestedValue(allStores[editingStore], editingKey, newValue);
-    closeEditModal();
-    render();
-  } catch (_e) {
-    alert(MESSAGES.INVALID_JSON);
-  }
-}
-
-function switchTab(tab: string): void {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  document.querySelector(`.tab[data-tab="${tab}"]`)?.classList.add('active');
-  document.getElementById(`${tab}-tab`)?.classList.add('active');
+  } catch { alert('Invalid JSON'); }
 }
 
 function clearAll(): void {
   actions = [];
-  selectedActionId = null;
-  currentActionIndex = -1;
+  selectedId = null;
   updateCount = 0;
   updateTimes = [];
+  changedKeys.clear();
+  changedStore = '';
   render();
 }
 
-function updateStatus(): void {
-  if (!statusTextEl) return;
-  const count = Object.keys(allStores).length;
-  statusTextEl.textContent = `${count} stores • ${actions.length} actions`;
-}
+// ---- Helpers ----
+function el(id: string): HTMLElement { return document.getElementById(id)!; }
 
-function updatePerfStats(): void {
-  if (!perfStatsEl) return;
-  const recent = updateTimes.slice(-10);
-  const rate = recent.length > 0 ? (1000 / (recent.reduce((a, b) => a + b, 0) / recent.length)).toFixed(1) : '0';
-  perfStatsEl.textContent = `${rate} updates/sec`;
-}
-
-function getNestedValue(obj: any, path: string): unknown {
+function getPath(obj: any, path: string): unknown {
   if (!path) return obj;
   return path.split('.').reduce((o, k) => o?.[k], obj);
 }
 
-function setNestedValue(obj: any, path: string, value: unknown): void {
+function setPath(obj: any, path: string, value: unknown): void {
   if (!path) { Object.assign(obj, value); return; }
   const keys = path.split('.');
   const last = keys.pop()!;
@@ -642,17 +615,22 @@ function setNestedValue(obj: any, path: string, value: unknown): void {
   target[last] = value;
 }
 
-function formatJson(value: unknown): string {
-  return escapeHtml(JSON.stringify(value, null, 2));
+function prettyJson(value: unknown): string {
+  if (value === undefined) return 'undefined';
+  if (value === null) return 'null';
+  try { return JSON.stringify(value, null, 2); } catch { return String(value); }
 }
 
-function formatSize(bytes: number): string {
+function fmtJson(value: unknown): string { return esc(JSON.stringify(value, null, 2)); }
+function fmtTime(ts: number): string { return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }); }
+
+function fmtSize(bytes: number): string {
   if (bytes < 1024) return bytes + 'B';
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + 'KB';
-  return (bytes / (1024 * 1024)).toFixed(1) + 'MB';
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + 'K';
+  return (bytes / 1048576).toFixed(1) + 'M';
 }
 
-function escapeHtml(s: string): string {
+function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 

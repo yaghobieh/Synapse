@@ -9,6 +9,8 @@ interface ApiCall {
   status: number | null;
   requestBody: unknown;
   responseBody: unknown;
+  requestHeaders?: Record<string, string>;
+  responseHeaders?: Record<string, string>;
   duration: number | null;
   timestamp: number;
 }
@@ -31,7 +33,8 @@ export function initApiTracking(): void {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
     const method = init?.method || 'GET';
     const requestBody = init?.body;
-    
+    const requestHeaders = init?.headers ? headersToRecord(init.headers) : undefined;
+
     const call: ApiCall = {
       id: ++apiId,
       method: method.toUpperCase(),
@@ -39,21 +42,23 @@ export function initApiTracking(): void {
       status: null,
       requestBody: tryParseJson(requestBody),
       responseBody: null,
+      requestHeaders,
       duration: null,
       timestamp: Date.now(),
     };
-    
+
     apiCalls.unshift(call);
     if (apiCalls.length > 50) apiCalls.pop();
-    
+
     const startTime = Date.now();
-    
+
     try {
       const response = await originalFetch.call(window, input, init);
-      
+
       call.status = response.status;
       call.duration = Date.now() - startTime;
-      
+      call.responseHeaders = headersToRecord(response.headers);
+
       // Clone and parse response
       const clone = response.clone();
       try {
@@ -65,7 +70,7 @@ export function initApiTracking(): void {
           call.responseBody = '[Unable to parse]';
         }
       }
-      
+
       return response;
     } catch (error) {
       call.status = 0;
@@ -121,6 +126,19 @@ export function initApiTracking(): void {
     
     return originalXHRSend.apply(this, arguments as any);
   };
+}
+
+function headersToRecord(headers: HeadersInit | undefined): Record<string, string> | undefined {
+  if (!headers) return undefined;
+  const out: Record<string, string> = {};
+  if (headers instanceof Headers) {
+    headers.forEach((value, key) => { out[key] = value; });
+  } else if (Array.isArray(headers)) {
+    headers.forEach(([k, v]) => { out[k] = String(v); });
+  } else {
+    Object.entries(headers).forEach(([k, v]) => { out[k] = String(v); });
+  }
+  return out;
 }
 
 function tryParseJson(data: unknown): unknown {

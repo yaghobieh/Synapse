@@ -1,4 +1,4 @@
-export const VERSION = '1.0.0';
+export const VERSION = '1.2.0';
 
 export const SYNAPSE_PREFIX = 'synapse';
 export const DEVTOOLS_KEY = '__SYNAPSE_DEVTOOLS__';

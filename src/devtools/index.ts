@@ -1,7 +1,3 @@
-/**
- * Synapse DevTools - Export all devtools utilities
- */
-
 export {
   connectDevTools,
   getRegisteredNuclei,
@@ -16,6 +12,10 @@ export {
   clearApiCalls,
 } from './apiTracker';
 
-// Re-export types
-export type { DevToolsMessage, DevToolsState } from '../types';
+export {
+  registerSignal,
+  syncToDevTools,
+  syncBatchToDevTools,
+} from './signalDevtools';
 
+export type { DevToolsMessage, DevToolsState } from '../types';

@@ -1,26 +1,22 @@
 /**
- * Synapse - Ultra-simple state management for React
- * 
- * @description
- * Synapse is a modern state management library that makes React state simple.
- * No dispatch, no reducers, no selectors - just create a nucleus and use it!
- * 
+ * Synapse — Ultra-simple state management for React
+ *
+ * No dispatch. No reducers. No selectors. Just create a nucleus and use it.
+ *
  * @example
  * ```tsx
  * import { createNucleus, useNucleus } from '@forgedevstack/synapse';
- * 
- * // Create your state
+ *
  * const counterNucleus = createNucleus((set) => ({
  *   count: 0,
- *   increment: () => set((state) => ({ count: state.count + 1 })),
- *   decrement: () => set((state) => ({ count: state.count - 1 })),
+ *   increment: () => set((s) => ({ count: s.count + 1 })),
+ *   decrement: () => set((s) => ({ count: s.count - 1 })),
  *   reset: () => set({ count: 0 }),
  * }));
- * 
- * // Use in components
+ *
  * function Counter() {
  *   const { count, increment, decrement, reset } = useNucleus(counterNucleus);
- *   
+ *
  *   return (
  *     <div>
  *       <span>{count}</span>
@@ -31,12 +27,12 @@
  *   );
  * }
  * ```
- * 
+ *
  * @packageDocumentation
  */
 
 // Core
-export { createNucleus, applyMiddleware } from './core/nucleus';
+export { createNucleus, applyMiddleware, batchUpdates } from './core/nucleus';
 export { signal, computed, batch, effect } from './core/signal';
 
 // DevTools
@@ -46,6 +42,7 @@ export { initApiTracking, trackApiCall, getApiCalls, clearApiCalls } from './dev
 export {
   useNucleus,
   usePick,
+  useNucleusSlice,
   useNuclei,
   useAction,
   useSubscribe,
@@ -85,4 +82,3 @@ export type {
 
 // Constants
 export { VERSION } from './constants';
-

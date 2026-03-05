@@ -5,10 +5,16 @@
 
 /// <reference path="./chrome.d.ts" />
 
+const tabId = chrome.devtools.inspectedWindow.tabId;
+const panelPath = 'panel.html?tabId=' + tabId;
+
+// Ask background to inject content script into the inspected tab (activeTab + scripting)
+chrome.runtime.sendMessage({ type: 'SYNAPSE_INIT', tabId });
+
 chrome.devtools.panels.create(
   'Synapse',
   'icons/icon16.png',
-  'panel.html',
+  panelPath,
   (panel) => {
     console.log('Synapse DevTools panel created');
     

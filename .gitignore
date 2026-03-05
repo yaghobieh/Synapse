@@ -2,3 +2,6 @@ node_modules
 dist
 
 *.zip
+
+devtools-extension/dist
+devtools-extension/node_modules
