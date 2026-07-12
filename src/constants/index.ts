@@ -1,4 +1,4 @@
-export const VERSION = '1.2.0';
+export const VERSION = '1.2.1';
 
 export const SYNAPSE_PREFIX = 'synapse';
 export const DEVTOOLS_KEY = '__SYNAPSE_DEVTOOLS__';
@@ -55,3 +55,5 @@ export * from './nucleus.const';
 export * from './signal.const';
 export * from './devtools.const';
 export * from './api.const';
+export * from './persist.const';
+export * from './reduxDevtools.const';

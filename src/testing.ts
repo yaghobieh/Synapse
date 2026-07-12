@@ -28,7 +28,7 @@ import type { Nucleus, StateInitializer, SynapseConfig } from './types';
  */
 export function createTestNucleus<T extends object>(
   initializer: StateInitializer<T>,
-  overrides: Partial<SynapseConfig> = {},
+  overrides: Partial<SynapseConfig<T>> = {},
 ): Nucleus<T> {
   return createNucleus(initializer, {
     devtools: false,

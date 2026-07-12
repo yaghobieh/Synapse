@@ -35,6 +35,15 @@
 export { createNucleus, applyMiddleware, batchUpdates } from './core/nucleus';
 export { signal, computed, batch, effect } from './core/signal';
 
+// Persistence
+export {
+  attachPersistence,
+  localStorageAdapter,
+  sessionStorageAdapter,
+  memoryStorageAdapter,
+  resolveStorageAdapter,
+} from './persist';
+
 // DevTools
 export { initApiTracking, trackApiCall, getApiCalls, clearApiCalls } from './devtools/apiTracker';
 
@@ -78,6 +87,17 @@ export type {
   QueryState,
   MutationState,
   ApiConfig,
+  StorageAdapter,
+  StorageKind,
+  StorageInput,
+  PersistMigrate,
+  PersistedEnvelope,
+  AttachPersistenceOptions,
+  PersistHandle,
+  Middleware,
+  MiddlewareConfig,
+  MiddlewareHooks,
+  ReduxDevtoolsOptions,
 } from './types';
 
 // Constants

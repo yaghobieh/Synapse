@@ -154,18 +154,122 @@ Load the extension from `synapse/devtools-extension/dist` as an unpacked extensi
 
 ---
 
+## Persistence
+
+Opt in per nucleus with the `persist` config option. State is hydrated from storage on creation and saved on every change with debounced writes (250 ms by default).
+
+```tsx
+import { createNucleus } from '@forgedevstack/synapse';
+
+const settingsNucleus = createNucleus(
+  (set) => ({
+    theme: 'dark',
+    locale: 'en',
+    draft: '',
+    setTheme: (theme: string) => set({ theme }),
+  }),
+  {
+    persist: {
+      key: 'settings',            // stored as 'synapse:settings'
+      storage: 'local',           // 'local' | 'session' | 'memory' | custom adapter
+      include: ['theme', 'locale'], // partial persistence — 'draft' is not saved
+      version: 2,
+      migrate: (old, fromVersion) => {
+        if (fromVersion === 1) return { ...(old as object), locale: 'en' };
+        return old;
+      },
+      debounceMs: 250,
+    },
+  },
+);
+```
+
+### Storage adapters
+
+Any object with `getItem` / `setItem` / `removeItem` (sync or async) works as a `StorageAdapter`. Built-ins:
+
+```ts
+import {
+  localStorageAdapter,
+  sessionStorageAdapter,
+  memoryStorageAdapter,
+} from '@forgedevstack/synapse';
+```
+
+`localStorageAdapter()` and `sessionStorageAdapter()` automatically fall back to in-memory storage in SSR/Node, so persisted nuclei are safe to create on the server. Async adapters (e.g. backed by IndexedDB or a remote API) are supported — return promises from the adapter methods.
+
+### Standalone use
+
+`attachPersistence` works with any existing nucleus and returns a handle:
+
+```ts
+import { attachPersistence } from '@forgedevstack/synapse';
+
+const handle = attachPersistence(cartNucleus, { key: 'cart', storage: 'session' });
+
+await handle.rehydrated; // hydration finished (relevant for async storage)
+handle.flush();          // write immediately, skipping the debounce
+handle.clear();          // remove the persisted entry
+handle.stop();           // detach (also called by nucleus.destroy())
+```
+
+---
+
 ## Middleware
 
-Import from `@forgedevstack/synapse/middleware`:
+Pass a pipeline through the `middleware` config option — every update (action `set` calls and direct `nucleus.set`) flows through it:
 
+```tsx
+import { createNucleus } from '@forgedevstack/synapse';
+import { interceptor, logger, composeMiddleware } from '@forgedevstack/synapse/middleware';
+
+const nucleus = createNucleus(
+  (set) => ({ count: 0, increment: () => set((s) => ({ count: s.count + 1 })) }),
+  {
+    middleware: [
+      interceptor({
+        before: (update, state) => {
+          if ((update.count ?? 0) < 0) return false;       // cancel the update
+          return { ...update, count: (update.count ?? 0) }; // or transform it
+        },
+        after: (state, prevState) => {
+          analytics.track('state-change', { count: state.count });
+        },
+      }),
+      logger({ diff: true }),
+    ],
+  },
+);
+```
+
+`composeMiddleware(a, b, c)` combines several middleware into a single one, applied left-to-right.
+
+Available middleware (import from `@forgedevstack/synapse/middleware`):
+
+- **interceptor** — Before/after hooks around every update; `before` can transform or cancel.
+- **composeMiddleware** — Combine multiple middleware into one.
 - **logger** — Log state changes (with optional diff and timestamp).
-- **persist** — Save and restore state to localStorage/sessionStorage; supports version and migrate.
+- **persist** — Save and restore state (localStorage/sessionStorage/memory/custom, versioned migrations, debounced writes).
+- **reduxDevtools** — Redux DevTools Extension connector (see below).
 - **immer** — Use mutable-style updates inside `set(fn)` that are applied immutably.
 - **undo** — Undo/redo with a history limit.
 - **throttle / debounce** — Throttle or debounce updates (optionally by state keys).
 - **validate** — Validate state with a Zod-like schema (reject, warn, or fix).
 - **sync** — Cross-tab state sync via BroadcastChannel.
 - **subscribeWithSelector** — Add `subscribeWithSelector(selector, listener)` to the nucleus for selector-based subscriptions.
+
+### Redux DevTools
+
+If the [Redux DevTools Extension](https://github.com/reduxjs/redux-devtools) is installed, connect a nucleus to it — state changes appear in the extension and jump/time-travel works. When the extension is absent the middleware is a silent no-op, and it adds zero dependencies.
+
+```tsx
+import { reduxDevtools } from '@forgedevstack/synapse/middleware';
+
+const nucleus = createNucleus(
+  (set) => ({ count: 0, increment: () => set((s) => ({ count: s.count + 1 })) }),
+  { middleware: [reduxDevtools({ name: 'Counter' })] },
+);
+```
 
 ---
 
@@ -211,10 +315,23 @@ See the full [API Reference](#api-reference) table in this README and the reposi
 | `useQuery(fetcher, opts?)` | Fetch data with state |
 | `useMutation(fn, opts?)` | Handle mutations |
 
+### Persistence
+
+| Function | Description |
+|----------|-------------|
+| `attachPersistence(n, opts)` | Persist a nucleus; returns `{ rehydrated, flush, clear, stop }` |
+| `localStorageAdapter()` | localStorage adapter (in-memory fallback on SSR) |
+| `sessionStorageAdapter()` | sessionStorage adapter (in-memory fallback on SSR) |
+| `memoryStorageAdapter()` | In-memory storage adapter |
+| `resolveStorageAdapter(input)` | Resolve `'local' \| 'session' \| 'memory'` or custom adapter |
+
 ### Middleware
 
 | Middleware | Description |
 |------------|-------------|
+| `interceptor(hooks)` | Before/after hooks; transform or cancel updates |
+| `composeMiddleware(...mws)` | Combine middleware into one |
+| `reduxDevtools(opts?)` | Redux DevTools Extension connector (no-op if absent) |
 | `logger(opts?)` | Log state changes |
 | `persist(opts)` | Save / restore state (sync and async storage, versioned migrations) |
 | `immer()` | Mutable-style immutable updates |

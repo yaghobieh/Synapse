@@ -2,6 +2,26 @@
  * Synapse Types - Core type definitions
  */
 
+import type { PersistMigrate, StorageAdapter, StorageInput } from './persist.types';
+
+export type {
+  StorageAdapter,
+  StorageKind,
+  StorageInput,
+  PersistMigrate,
+  PersistedEnvelope,
+  AttachPersistenceOptions,
+  PersistHandle,
+} from './persist.types';
+
+export type {
+  MiddlewareHooks,
+  ReduxDevtoolsOptions,
+  ReduxDevtoolsMessage,
+  ReduxDevtoolsConnection,
+  ReduxDevtoolsExtension,
+} from './middleware.types';
+
 // ============================================================================
 // NAMING CONVENTIONS
 // ============================================================================
@@ -14,7 +34,7 @@ export type NamingConvention = 'camelCase' | 'PascalCase' | 'snake_case' | 'SCRE
 /**
  * Synapse configuration options
  */
-export interface SynapseConfig {
+export interface SynapseConfig<T extends object = object> {
   /** Naming convention for actions (default: 'camelCase') */
   actionNaming?: NamingConvention;
   /** Action prefix (e.g., 'TRK' → 'TRK_ADD_TODO') */
@@ -27,17 +47,27 @@ export interface SynapseConfig {
   logging?: boolean;
   /** Persist state to storage */
   persist?: PersistConfig | boolean;
+  /** Middleware pipeline applied to every state update */
+  middleware?: Middleware<T>[];
 }
 
 export interface PersistConfig {
   /** Storage key */
   key: string;
-  /** Storage type: 'local' | 'session' | custom storage */
-  storage?: 'local' | 'session' | Storage;
+  /** Storage type: 'local' | 'session' | 'memory' | custom storage adapter */
+  storage?: StorageInput;
+  /** Key namespace prefix (default: 'synapse:') */
+  namespace?: string;
   /** Properties to persist (undefined = all) */
   include?: string[];
   /** Properties to exclude from persistence */
   exclude?: string[];
+  /** Persisted state schema version (default: 1) */
+  version?: number;
+  /** Migrate persisted state from an older version */
+  migrate?: PersistMigrate;
+  /** Debounced write delay in ms (default: PERSIST_NUMBERS.DEBOUNCE_MS) */
+  debounceMs?: number;
   /** Custom serializer */
   serialize?: (state: unknown) => string;
   /** Custom deserializer */
@@ -178,7 +208,7 @@ export interface MiddlewareConfig<T extends object = object> {
   /** Initial state */
   initialState: T;
   /** Synapse config */
-  config: SynapseConfig;
+  config: SynapseConfig<T>;
 }
 
 /**
@@ -200,11 +230,13 @@ export interface LoggerOptions {
  */
 export interface PersistOptions<T extends object = object> {
   key: string;
-  storage?: 'local' | 'session' | Storage;
+  storage?: StorageInput;
+  namespace?: string;
   include?: (keyof T)[];
   exclude?: (keyof T)[];
   version?: number;
   migrate?: (persistedState: unknown, version: number) => T;
+  debounceMs?: number;
 }
 
 // ============================================================================
@@ -341,9 +373,5 @@ export interface DevToolsState {
 // STORAGE INTERFACE
 // ============================================================================
 
-export interface Storage {
-  getItem: (key: string) => string | null | Promise<string | null>;
-  setItem: (key: string, value: string) => void | Promise<void>;
-  removeItem: (key: string) => void | Promise<void>;
-}
+export type Storage = StorageAdapter;
 

@@ -1,6 +1,6 @@
 {
   "name": "@forgedevstack/synapse",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Synapse - Ultra-simple state management for React. No dispatch, no reducers, just signals.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

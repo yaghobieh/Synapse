@@ -4,6 +4,31 @@ All notable changes to **Synapse** are documented here.
 
 ---
 
+## [1.2.1] — 2026-07-12
+
+### Added
+
+- **Persistence core** (`attachPersistence`) — opt-in store persistence, now wired directly into `createNucleus` via the `persist` config option:
+  - `persist: { key, storage?, namespace?, include?, exclude?, version?, migrate?, debounceMs?, serialize?, deserialize? }` hydrates on store creation and saves on every change with debounced writes (default `PERSIST_NUMBERS.DEBOUNCE_MS` = 250 ms).
+  - Returns a `PersistHandle` (`rehydrated` promise, `flush()`, `clear()`, `stop()`); `nucleus.destroy()` stops persistence automatically.
+- **Storage adapters** — `StorageAdapter` interface (`getItem` / `setItem` / `removeItem`, sync or async) with built-ins:
+  - `localStorageAdapter()`, `sessionStorageAdapter()` — fall back to in-memory storage in SSR/Node.
+  - `memoryStorageAdapter()` — explicit in-memory storage (`storage: 'memory'`).
+  - `resolveStorageAdapter(input)` — resolves `'local' | 'session' | 'memory'` or a custom adapter.
+- **Middleware pipeline** — the `middleware: [...]` config option on `createNucleus` is now functional. Middleware wraps both action `set` calls and direct `nucleus.set` calls, and receives the real `nucleus`, `initialState`, and config.
+- **`interceptor({ before, after })` middleware** — intercept updates before they apply (transform by returning a new partial, cancel by returning `false`) and observe state after each change.
+- **`composeMiddleware(...middlewares)`** — combine several middleware into one, applied left-to-right.
+- **`reduxDevtools(options?)` middleware** — connects to the Redux DevTools Extension via `window.__REDUX_DEVTOOLS_EXTENSION__` when present (state inspection + jump/time-travel), no-op otherwise. Zero dependencies.
+- **Test suite** — vitest coverage for storage adapters, persistence (hydration, migrate, include/exclude, debounce, async storage), the middleware pipeline, and the Redux DevTools connector.
+
+### Changed
+
+- `persist` middleware now shares the persistence core (`attachPersistence`) and accepts `namespace`, `debounceMs`, and `'memory'` storage; default write debounce is now 250 ms (was 1000 ms).
+- `clearPersisted(key, storage?, namespace?)` accepts any `StorageInput` and an optional namespace.
+- `SynapseConfig` is now generic (`SynapseConfig<T>`) to type the `middleware` array; existing non-generic usage keeps working.
+
+---
+
 ## [1.2.0] — 2026-03-03
 
 ### Added
